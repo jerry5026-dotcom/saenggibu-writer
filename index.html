@@ -292,22 +292,19 @@ const MODELS = {
     {v:'gpt-4o',          l:'GPT-4o'},
     {v:'gpt-4o-mini',     l:'GPT-4o mini'},
     {v:'o3',              l:'o3 (고급 추론)'},
-    {v:'o3-mini',         l:'o3-mini (추론 · 저렴)'},
-    {v:'__custom__',      l:'직접 입력...'}
+    {v:'o3-mini',         l:'o3-mini (추론 · 저렴)'}
   ],
   gemini: [
     {v:'gemini-3.1-pro-preview',   l:'Gemini 3.1 Pro Preview (최신 · 최고품질)'},
     {v:'gemini-3-flash-preview',   l:'Gemini 3 Flash Preview (최신 · 빠름)'},
     {v:'gemini-2.5-pro',           l:'Gemini 2.5 Pro (안정 · 최고품질)'},
     {v:'gemini-2.5-flash',         l:'Gemini 2.5 Flash (추천 · 균형)'},
-    {v:'gemini-2.5-flash-lite',    l:'Gemini 2.5 Flash Lite (빠름 · 저렴)'},
-    {v:'__custom__',               l:'직접 입력...'}
+    {v:'gemini-2.5-flash-lite',    l:'Gemini 2.5 Flash Lite (빠름 · 저렴)'}
   ],
   claude: [
     {v:'claude-opus-4-6',           l:'Claude Opus 4.6 (최고품질)'},
     {v:'claude-sonnet-4-6',         l:'Claude Sonnet 4.6 (추천)'},
-    {v:'claude-haiku-4-5-20251001', l:'Claude Haiku 4.5 (빠름)'},
-    {v:'__custom__',                l:'직접 입력...'}
+    {v:'claude-haiku-4-5-20251001', l:'Claude Haiku 4.5 (빠름)'}
   ]
 };
 
@@ -1021,45 +1018,13 @@ function populateModels(p) {
   const sel = document.getElementById('modelSel');
   const list = MODELS[p] || [];
   sel.innerHTML = list.map(m => `<option value="${m.v}">${m.l}</option>`).join('');
-
-  // 현재 저장된 모델이 목록에 없으면 직접입력 필드에 표시
-  const known = list.find(m => m.v === S.api.model && m.v !== '__custom__');
-  sel.value = known ? S.api.model : '__custom__';
-
-  toggleCustomModel(sel.value);
-  sel.onchange = () => toggleCustomModel(sel.value);
-}
-
-function toggleCustomModel(val) {
-  let wrap = document.getElementById('customModelWrap');
-  if (!wrap) {
-    wrap = document.createElement('div');
-    wrap.id = 'customModelWrap';
-    wrap.style.marginTop = '8px';
-    wrap.innerHTML = `<input type="text" class="field-input" id="customModelInp"
-      placeholder="모델 ID를 직접 입력 (예: gpt-4o-2024-11-20)"
-      style="font-family:'Courier New',monospace">`;
-    document.getElementById('modelSel').insertAdjacentElement('afterend', wrap);
-  }
-  wrap.style.display = val === '__custom__' ? 'block' : 'none';
-  if (val === '__custom__') {
-    const inp = document.getElementById('customModelInp');
-    const cur = (S.api.model && S.api.model !== '__custom__') ? S.api.model : '';
-    inp.value = cur;
-    inp.focus();
-  }
+  const known = list.find(m => m.v === S.api.model);
+  sel.value = known ? S.api.model : list[0]?.v;
 }
 
 function saveApiSettings() {
   S.api.key = document.getElementById('apiKeyInp').value.trim();
-  const selVal = document.getElementById('modelSel').value;
-  if (selVal === '__custom__') {
-    const custom = (document.getElementById('customModelInp')?.value || '').trim();
-    if (!custom) { toast('모델 ID를 입력해주세요.', 'error'); return; }
-    S.api.model = custom;
-  } else {
-    S.api.model = selVal;
-  }
+  S.api.model = document.getElementById('modelSel').value;
   saveStore(); updateBadge(); closeOverlay('apiOverlay');
   toast(S.api.key ? 'API 설정 저장됨' : '프롬프트 복사 모드로 사용합니다.', S.api.key ? 'success' : 'info');
 }
