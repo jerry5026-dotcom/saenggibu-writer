@@ -235,6 +235,21 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
   </div>
 </div>
 
+<!-- 초기화 확인 -->
+<div class="overlay" id="resetOverlay" style="display:none">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-title">🗑️ 전체 초기화</div>
+    <p style="color:#475569;font-size:14px;line-height:1.7;margin:0 0 6px">
+      모든 학생 정보와 생성된 문장이 <strong style="color:#dc2626">삭제</strong>됩니다.<br>
+      이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?
+    </p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('resetOverlay')">취소</button>
+      <button class="btn btn-primary" style="background:#dc2626;border-color:#dc2626" onclick="confirmReset()">초기화</button>
+    </div>
+  </div>
+</div>
+
 <!-- 프롬프트 복사 -->
 <div class="overlay" id="promptOverlay" style="display:none">
   <div class="modal modal-lg">
@@ -1069,7 +1084,10 @@ document.addEventListener('click',e=>{if(e.target.classList.contains('overlay'))
 // SAVE / LOAD
 // ══════════════════════════════════════════════════
 function resetAll() {
-  if (!confirm('모든 학생 정보와 생성된 문장이 삭제됩니다.\n정말 초기화하시겠습니까?')) return;
+  document.getElementById('resetOverlay').style.display = 'flex';
+}
+function confirmReset() {
+  closeOverlay('resetOverlay');
   localStorage.removeItem(STORE_KEY);
   location.reload();
 }
