@@ -707,7 +707,7 @@ function renderRow(student, rowNum, sec) {
     </td>
     <td class="td-input">
       <textarea class="char-ta"
-        placeholder="활동 내용, 역할, 특징 등을 자유롭게 입력하세요.&#10;&#10;예) 환경 동아리에서 탄소 발자국 측정 프로젝트를 주도함. 데이터를 분석하여 감축 방안을 보고서로 작성함."
+        placeholder="활동 내용, 역할, 특징 등을 자유롭게 입력하세요.&#10;활동이 여러 개면 줄바꿈으로 구분하세요.&#10;&#10;예) 환경 동아리에서 탄소 발자국 측정 프로젝트를 주도함. 데이터를 분석하여 감축 방안을 보고서로 작성함."
         oninput="fitHeight(this)"
         onchange="patchEntry('${student.id}','${sec.id}','chars',this.value)"
       >${esc(entry.chars)}</textarea>
