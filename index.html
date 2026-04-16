@@ -174,6 +174,73 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .toast.success{background:#059669}.toast.error{background:#dc2626}.toast.info{background:#2563eb}
 
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+  /* Header */
+  .header{height:auto;padding:10px 14px;flex-wrap:wrap;gap:8px}
+  .logo{font-size:14px}
+  .logo span{display:none}
+  .header-right{gap:5px;flex-wrap:wrap}
+  .header-right .btn{padding:6px 9px;font-size:12px}
+  .header-right .btn .btn-label{display:none}
+  .api-badge{font-size:11px;padding:4px 8px}
+
+  /* Tabs */
+  .tabs-bar{padding:0 12px}
+  .tab{padding:8px 12px;font-size:12px}
+
+  /* Content */
+  .content{padding:10px 12px}
+
+  /* Toolbar */
+  .class-toolbar{padding:10px 12px;gap:8px}
+  .toolbar-sep{flex:1}
+
+  /* Table → Card layout */
+  .table-wrap{border-radius:10px;overflow:hidden}
+  table,thead,tbody,tr,td,th{display:block}
+  thead{display:none}
+  .s-row{border-bottom:2px solid #e2e8f0;padding:12px;position:relative}
+  .s-row:last-child{border-bottom:none}
+  .s-row td{border:none;padding:0}
+
+  /* 번호 + 이름 한 줄 */
+  .td-num{display:inline-flex!important;align-items:center;width:auto;padding:0 10px 10px 0;vertical-align:top}
+  .td-name{display:inline-block!important;width:calc(100% - 60px);padding:0 0 10px;vertical-align:top}
+  .name-inp{text-align:left;font-size:14px}
+  .row-badge{margin:0;margin-right:4px}
+  .num-sub{width:40px}
+
+  /* 학생특성 입력 */
+  .td-input{margin:4px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+  .td-input::before{content:'📝 학생 특성';display:block;font-size:11px;font-weight:700;color:#94a3b8;padding:8px 14px 0;letter-spacing:.3px}
+  .char-ta{min-height:80px;padding:6px 14px 10px}
+
+  /* 생성된 문장 */
+  .td-result{border-left:none;border-top:none;margin:4px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+  .td-result::before{content:'✨ 생성된 문장';display:block;font-size:11px;font-weight:700;color:#94a3b8;padding:8px 14px 0;letter-spacing:.3px}
+  .result-inner{min-height:80px}
+  .result-ta{min-height:80px;padding:6px 14px 10px}
+  .result-empty{padding:14px}
+
+  /* 학생 추가 행 */
+  .add-row td{padding:10px 0;text-align:center}
+
+  /* 전체 생성하기 버튼 */
+  .class-toolbar .btn{font-size:12px;padding:6px 10px}
+
+  /* Modal */
+  .modal{padding:22px 16px;border-radius:12px;max-height:95vh}
+  .provider-grid{gap:6px}
+  .prov-card{padding:10px 6px}
+  .prov-icon{font-size:22px}
+  .prov-name{font-size:12px}
+  .modal-footer{flex-wrap:wrap}
+
+  /* Footer */
+  footer{font-size:10px;padding:14px 0 10px}
+}
 </style>
 </head>
 <body>
@@ -185,11 +252,11 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <div id="apiBadge" class="api-badge disconnected" onclick="openApiModal()">
       <span class="dot"></span><span id="apiBadgeText">프롬프트 복사 모드</span>
     </div>
-    <button class="btn btn-outline" onclick="openApiModal()">⚙️ API 설정</button>
-    <button class="btn btn-outline" onclick="resetAll()" style="color:#dc2626;border-color:#fca5a5">🗑️ 초기화</button>
-    <button class="btn btn-outline" id="saveBtn" onclick="manualSave()">💾 저장</button>
-    <button class="btn btn-outline" onclick="triggerUpload()">📂 엑셀 불러오기</button>
-    <button class="btn btn-outline" onclick="downloadXLSX()">⬇️ 엑셀 다운로드</button>
+    <button class="btn btn-outline" onclick="openApiModal()">⚙️ <span class="btn-label">API 설정</span></button>
+    <button class="btn btn-outline" onclick="resetAll()" style="color:#dc2626;border-color:#fca5a5">🗑️ <span class="btn-label">초기화</span></button>
+    <button class="btn btn-outline" id="saveBtn" onclick="manualSave()">💾 <span class="btn-label">저장</span></button>
+    <button class="btn btn-outline" onclick="triggerUpload()">📂 <span class="btn-label">엑셀 불러오기</span></button>
+    <button class="btn btn-outline" onclick="downloadXLSX()">⬇️ <span class="btn-label">엑셀 다운로드</span></button>
   </div>
 </header>
 
