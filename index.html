@@ -286,25 +286,25 @@ const SEC_TYPES = [
 
 const MODELS = {
   openai: [
-    {v:'gpt-5.4',         l:'GPT-5.4 (최신 · 최고품질)'},
-    {v:'gpt-5.4-mini',    l:'GPT-5.4 mini (추천 · 균형)'},
-    {v:'gpt-5.4-nano',    l:'GPT-5.4 nano (빠름 · 저렴)'},
-    {v:'gpt-4o',          l:'GPT-4o'},
-    {v:'gpt-4o-mini',     l:'GPT-4o mini'},
-    {v:'o3',              l:'o3 (고급 추론)'},
-    {v:'o3-mini',         l:'o3-mini (추론 · 저렴)'}
+    {v:'gpt-5.4',         l:'GPT-5.4 (최신 · 최고품질 · 유료)'},
+    {v:'gpt-5.4-mini',    l:'GPT-5.4 mini (추천 · 균형 · 유료)'},
+    {v:'gpt-5.4-nano',    l:'GPT-5.4 nano (빠름 · 저렴 · 유료)'},
+    {v:'gpt-4o',          l:'GPT-4o (안정 · 유료)'},
+    {v:'gpt-4o-mini',     l:'GPT-4o mini (저렴 · 유료)'},
+    {v:'o3',              l:'o3 (고급 추론 · 유료)'},
+    {v:'o3-mini',         l:'o3-mini (추론 · 저렴 · 유료)'}
   ],
   gemini: [
-    {v:'gemini-3.1-pro-preview',   l:'Gemini 3.1 Pro Preview (최신 · 최고품질)'},
-    {v:'gemini-3-flash-preview',   l:'Gemini 3 Flash Preview (최신 · 빠름)'},
-    {v:'gemini-2.5-pro',           l:'Gemini 2.5 Pro (안정 · 최고품질)'},
-    {v:'gemini-2.5-flash',         l:'Gemini 2.5 Flash (추천 · 균형)'},
-    {v:'gemini-2.5-flash-lite',    l:'Gemini 2.5 Flash Lite (빠름 · 저렴)'}
+    {v:'gemini-3.1-pro-preview',   l:'Gemini 3.1 Pro Preview (최신 · 최고품질 · 유료 전용)'},
+    {v:'gemini-3-flash-preview',   l:'Gemini 3 Flash Preview (최신 · 빠름 · 혼잡 가능)'},
+    {v:'gemini-2.5-pro',           l:'Gemini 2.5 Pro (안정 · 최고품질 · 무료 가능)'},
+    {v:'gemini-2.5-flash',         l:'Gemini 2.5 Flash (추천 · 균형 · 무료 가능)'},
+    {v:'gemini-2.5-flash-lite',    l:'Gemini 2.5 Flash Lite (빠름 · 저렴 · 무료 가능)'}
   ],
   claude: [
-    {v:'claude-opus-4-6',           l:'Claude Opus 4.6 (최고품질)'},
-    {v:'claude-sonnet-4-6',         l:'Claude Sonnet 4.6 (추천)'},
-    {v:'claude-haiku-4-5-20251001', l:'Claude Haiku 4.5 (빠름)'}
+    {v:'claude-opus-4-6',           l:'Claude Opus 4.6 (최고품질 · 유료)'},
+    {v:'claude-sonnet-4-6',         l:'Claude Sonnet 4.6 (추천 · 유료)'},
+    {v:'claude-haiku-4-5-20251001', l:'Claude Haiku 4.5 (빠름 · 저렴 · 유료)'}
   ]
 };
 
@@ -790,21 +790,35 @@ ${isHb
 // ══════════════════════════════════════════════════
 // API
 // ══════════════════════════════════════════════════
+function translateApiError(msg) {
+  if (!msg) return '알 수 없는 오류가 발생했습니다.';
+  if (/high demand|overloaded/i.test(msg))      return '현재 서버가 혼잡합니다. 잠시 후 다시 시도해주세요.';
+  if (/quota.*exceeded|exceeded.*quota/i.test(msg)) return '사용 한도를 초과했습니다. 플랜 및 결제 정보를 확인해주세요.';
+  if (/free_tier|free tier/i.test(msg))          return '이 모델은 무료 플랜에서 사용할 수 없습니다. 유료 플랜으로 업그레이드하거나 다른 모델을 선택해주세요.';
+  if (/rate.?limit/i.test(msg))                  return '요청 횟수 제한에 도달했습니다. 잠시 후 다시 시도해주세요.';
+  if (/invalid.*api.*key|api.*key.*invalid|incorrect api key/i.test(msg)) return 'API 키가 올바르지 않습니다. API 설정을 확인해주세요.';
+  if (/model.*not.*found|model.*does.*not.*exist/i.test(msg)) return '선택한 모델을 찾을 수 없습니다. 다른 모델을 선택해주세요.';
+  if (/permission|unauthorized|forbidden/i.test(msg)) return '이 모델에 대한 접근 권한이 없습니다. API 키 또는 플랜을 확인해주세요.';
+  if (/context.*length|token.*limit|maximum.*token/i.test(msg)) return '입력 내용이 너무 깁니다. 학생 특성 내용을 줄여주세요.';
+  if (/network|fetch|connect/i.test(msg))        return '네트워크 연결을 확인해주세요.';
+  return msg; // 번역 불가 시 원문 그대로
+}
+
 async function callAPI(prompt) {
   const {provider,key,model} = S.api;
   if (!key) throw new Error('API 키가 설정되지 않았습니다.');
   let res, data, text;
   if (provider==='openai') {
     res = await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,temperature:0.7,response_format:{type:'json_object'},messages:[{role:'user',content:prompt}]})});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'OpenAI 오류 '+res.status);}
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'OpenAI 오류 '+res.status));}
     data=await res.json(); text=data.choices[0].message.content;
   } else if (provider==='gemini') {
     res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7}})});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'Gemini 오류 '+res.status);}
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'Gemini 오류 '+res.status));}
     data=await res.json(); text=data.candidates[0].content.parts[0].text;
   } else if (provider==='claude') {
     res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:2048,messages:[{role:'user',content:prompt}]})});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(e.error?.message||'Claude 오류 '+res.status);}
+    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'Claude 오류 '+res.status));}
     data=await res.json(); text=data.content[0].text;
   }
   return parseResult(text);
