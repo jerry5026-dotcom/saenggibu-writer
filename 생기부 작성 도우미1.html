@@ -241,6 +241,36 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
   /* Footer */
   footer{font-size:10px;padding:14px 0 10px}
 }
+
+/* ══════════ 비밀번호 잠금 화면 ══════════ */
+#lockScreen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:rgba(15,23,42,0.85);backdrop-filter:blur(8px)}
+.lock-box{background:#fff;border-radius:20px;padding:36px 32px 32px;width:320px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.3)}
+.lock-title{font-size:18px;font-weight:700;color:#1e293b;margin-bottom:6px}
+.lock-sub{font-size:13px;color:#64748b;margin-bottom:24px}
+.lock-dots{display:flex;justify-content:center;gap:12px;margin-bottom:20px;min-height:20px}
+.lock-dot{width:14px;height:14px;border-radius:50%;background:#e2e8f0;transition:background .15s}
+.lock-dot.filled{background:#3b82f6}
+.lock-err{font-size:13px;color:#ef4444;min-height:20px;margin-bottom:10px}
+.lock-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.lock-key{height:56px;border-radius:14px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:22px;font-weight:600;color:#1e293b;cursor:pointer;transition:background .1s,transform .1s}
+.lock-key:active{background:#e0e7ff;transform:scale(.95)}
+.lock-key.del{font-size:16px;color:#64748b}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
+.shake{animation:shake .35s ease}
+
+/* ══════════ 비밀번호 설정 모달 ══════════ */
+#pwSetOverlay .modal{max-width:380px}
+.pw-step{display:none}.pw-step.active{display:block}
+.pw-input-row{display:flex;gap:8px;align-items:center}
+.pw-input-row input{flex:1}
+
+/* ══════════ 사용방법 모달 ══════════ */
+#manualOverlay .modal{max-width:580px;max-height:80vh;overflow-y:auto}
+.manual-section{margin-bottom:20px}
+.manual-section h3{font-size:14px;font-weight:700;color:#1e293b;margin:0 0 8px;padding-bottom:6px;border-bottom:1px solid #f1f5f9}
+.manual-section ul{margin:0;padding-left:20px;color:#475569;font-size:13px;line-height:1.9}
+.manual-section li{margin-bottom:2px}
+.manual-badge{display:inline-block;background:#eff6ff;color:#3b82f6;font-size:11px;font-weight:600;padding:1px 7px;border-radius:20px;margin-left:4px}
 </style>
 </head>
 <body>
@@ -258,6 +288,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <button class="btn btn-outline" onclick="triggerStudentUpload()">👥 <span class="btn-label">명단 업로드</span></button>
     <button class="btn btn-outline" onclick="triggerUpload()">📂 <span class="btn-label">엑셀 불러오기</span></button>
     <button class="btn btn-outline" onclick="downloadXLSX()">⬇️ <span class="btn-label">엑셀 다운로드</span></button>
+    <button class="btn btn-outline" onclick="openManualModal()">📖 <span class="btn-label">사용방법</span></button>
   </div>
 </header>
 
@@ -295,6 +326,9 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <label class="field-label">API 키 <span style="font-weight:400;color:#94a3b8">(없으면 비워두세요)</span></label>
     <input type="password" class="field-input" id="apiKeyInp" placeholder="API 키를 입력하세요">
     <div id="provNote" style="margin-top:8px;font-size:12px;color:#94a3b8;line-height:1.5"></div>
+    <div style="margin-top:18px;padding-top:14px;border-top:1px solid #f1f5f9;text-align:center">
+      <a href="javascript:void(0)" onclick="openPwSetModal()" style="font-size:13px;color:#64748b;text-decoration:none;display:inline-flex;align-items:center;gap:4px">🔒 비밀번호 설정/변경</a>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="clearApiKey()">키 초기화</button>
       <button class="btn btn-outline" onclick="closeOverlay('apiOverlay')">취소</button>
@@ -346,6 +380,129 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       <button class="btn btn-primary" id="modifyRunBtn" onclick="runModify()">
         <span class="spin spin-sm" style="color:#fff;display:none" id="modifySpin"></span>수정하기
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 잠금 화면 ══════════ -->
+<div id="lockScreen" style="display:none">
+  <div class="lock-box" id="lockBox">
+    <div class="lock-title">🔒 생기부 작성 도우미 Ⅰ</div>
+    <div class="lock-sub">비밀번호를 입력하세요</div>
+    <div class="lock-dots" id="lockDots"></div>
+    <div class="lock-err" id="lockErr"></div>
+    <div class="lock-keypad">
+      <button class="lock-key" onclick="lockKeyPress('1')">1</button>
+      <button class="lock-key" onclick="lockKeyPress('2')">2</button>
+      <button class="lock-key" onclick="lockKeyPress('3')">3</button>
+      <button class="lock-key" onclick="lockKeyPress('4')">4</button>
+      <button class="lock-key" onclick="lockKeyPress('5')">5</button>
+      <button class="lock-key" onclick="lockKeyPress('6')">6</button>
+      <button class="lock-key" onclick="lockKeyPress('7')">7</button>
+      <button class="lock-key" onclick="lockKeyPress('8')">8</button>
+      <button class="lock-key" onclick="lockKeyPress('9')">9</button>
+      <button class="lock-key" style="visibility:hidden"></button>
+      <button class="lock-key" onclick="lockKeyPress('0')">0</button>
+      <button class="lock-key del" onclick="lockKeyDel()">⌫</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 비밀번호 설정 모달 ══════════ -->
+<div class="overlay" id="pwSetOverlay" style="display:none">
+  <div class="modal" style="max-width:380px">
+    <button class="modal-close" onclick="closeOverlay('pwSetOverlay')">×</button>
+    <div class="modal-title">🔒 비밀번호 설정/변경</div>
+    <!-- Step 0: 현재 비밀번호 확인 (기존 비밀번호 있을 때만) -->
+    <div class="pw-step active" id="pwStep0">
+      <label class="field-label">현재 비밀번호</label>
+      <input type="password" class="field-input" id="pwCurrentInp" inputmode="numeric" pattern="[0-9]*" placeholder="현재 비밀번호 입력" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <div id="pwCurrentErr" style="font-size:12px;color:#ef4444;min-height:18px;margin-top:4px"></div>
+      <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeOverlay('pwSetOverlay')">취소</button>
+        <button class="btn btn-primary" onclick="pwConfirmCurrent()">확인</button>
+      </div>
+    </div>
+    <!-- Step 1: 새 비밀번호 입력 -->
+    <div class="pw-step" id="pwStep1">
+      <label class="field-label">새 비밀번호 <span style="font-weight:400;color:#94a3b8">(숫자 4~6자리)</span></label>
+      <input type="password" class="field-input" id="pwNewInp" inputmode="numeric" pattern="[0-9]*" placeholder="새 비밀번호" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <label class="field-label" style="margin-top:12px">새 비밀번호 확인</label>
+      <input type="password" class="field-input" id="pwConfirmInp" inputmode="numeric" pattern="[0-9]*" placeholder="다시 입력" maxlength="6" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <div id="pwNewErr" style="font-size:12px;color:#ef4444;min-height:18px;margin-top:4px"></div>
+      <div class="modal-footer" style="justify-content:space-between">
+        <button class="btn btn-ghost" style="color:#dc2626" onclick="pwRemove()" id="pwRemoveBtn">비밀번호 해제</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" onclick="closeOverlay('pwSetOverlay')">취소</button>
+          <button class="btn btn-primary" onclick="pwSaveNew()">저장</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 사용방법 모달 ══════════ -->
+<div class="overlay" id="manualOverlay" style="display:none">
+  <div class="modal" style="max-width:580px;max-height:80vh;overflow-y:auto">
+    <button class="modal-close" onclick="closeOverlay('manualOverlay')">×</button>
+    <div class="modal-title">📖 사용방법 — 생기부 작성 도우미 Ⅰ</div>
+    <div class="manual-section">
+      <h3>1. 기본 사용법</h3>
+      <ul>
+        <li>상단 [+] 버튼으로 영역 탭 추가 (자율활동 / 동아리 / 진로 / 행동특성)</li>
+        <li>학생 이름 입력 후 활동 내용을 <strong>"학생 특성"</strong> 칸에 자유롭게 입력</li>
+        <li>활동이 여러 개면 줄바꿈으로 구분</li>
+        <li>"생성하기" 또는 "전체 생성하기" 클릭</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>2. 명단 업로드</h3>
+      <ul>
+        <li>엑셀 파일 준비: A열=번호, B열=이름, 1행=헤더</li>
+        <li>[👥 명단 업로드] 클릭하여 파일 선택</li>
+        <li>기존 입력 데이터는 순서에 맞게 유지됨</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>3. 엑셀에서 학생 특성 일괄 붙여넣기 <span class="manual-badge">★ NEW</span></h3>
+      <ul>
+        <li>엑셀에서 학생 특성 내용이 입력된 셀들을 복사 (Ctrl+C)</li>
+        <li>첫 번째 학생의 <strong>"학생 특성"</strong> 칸을 클릭 후 붙여넣기 (Ctrl+V)</li>
+        <li>자동으로 아래 학생들까지 순서대로 채워짐</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>4. AI API 설정</h3>
+      <ul>
+        <li>[⚙️ API 설정] 클릭 → AI 서비스와 API 키 입력</li>
+        <li>API 키 없이도 프롬프트 복사 모드로 ChatGPT 등에서 사용 가능</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>5. 엑셀 저장/불러오기</h3>
+      <ul>
+        <li>[엑셀 다운로드]: 영역별 시트로 전체 저장</li>
+        <li>[엑셀 불러오기]: 저장한 파일로 복원</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>6. 비밀번호 설정 🔒</h3>
+      <ul>
+        <li>[⚙️ API 설정] 하단의 "🔒 비밀번호 설정/변경" 클릭</li>
+        <li>숫자 4~6자리로 설정</li>
+        <li>이후 앱 접속 시 비밀번호 입력 화면 표시</li>
+        <li>비밀번호를 잊으면 브라우저 개발자 도구에서 localStorage 초기화 필요</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>7. 데이터 저장</h3>
+      <ul>
+        <li>입력 내용은 브라우저에 자동 저장됨 (같은 브라우저에서만 유지)</li>
+        <li>중요 데이터는 [엑셀 다운로드]로 백업 권장</li>
+      </ul>
+    </div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn btn-outline" onclick="closeOverlay('manualOverlay')">닫기</button>
     </div>
   </div>
 </div>
@@ -421,6 +578,7 @@ let pickerOpen = false;
 // ══════════════════════════════════════════════════
 function init() {
   loadStore();
+  checkPasswordLock();
   if (!S.students.length) {
     S.students = Array.from({length:5}, mkStudent);
   }
@@ -710,6 +868,7 @@ function renderRow(student, rowNum, sec) {
         placeholder="활동 내용, 역할, 특징 등을 자유롭게 입력하세요.&#10;활동이 여러 개면 줄바꿈으로 구분하세요.&#10;&#10;예) 환경 동아리에서 탄소 발자국 측정 프로젝트를 주도함. 데이터를 분석하여 감축 방안을 보고서로 작성함."
         oninput="fitHeight(this)"
         onchange="patchEntry('${student.id}','${sec.id}','chars',this.value)"
+        onpaste="handleCharTaPaste(event,'${student.id}','${sec.id}')"
       >${esc(entry.chars)}</textarea>
     </td>
     <td class="td-result">
@@ -1180,6 +1339,176 @@ function confirmReset() {
   closeOverlay('resetOverlay');
   localStorage.removeItem(STORE_KEY);
   location.reload();
+}
+
+// ══════════════════════════════════════════════════
+// 기능 1: 숫자 비밀번호 잠금
+// ══════════════════════════════════════════════════
+const PW_KEY = 'saenggibu_v1_pw';
+let _lockInput = '';
+
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function checkPasswordLock() {
+  const saved = localStorage.getItem(PW_KEY);
+  if (!saved) return; // 비밀번호 없으면 잠금 없음
+  _lockInput = '';
+  const el = document.getElementById('lockScreen');
+  if (el) el.style.display = 'flex';
+  renderLockDots();
+  document.addEventListener('keydown', lockKeyboardHandler);
+}
+
+function lockKeyboardHandler(e) {
+  if (/^[0-9]$/.test(e.key)) { lockKeyPress(e.key); }
+  else if (e.key === 'Backspace') { lockKeyDel(); }
+}
+
+function renderLockDots() {
+  const container = document.getElementById('lockDots');
+  if (!container) return;
+  const len = _lockInput.length;
+  container.innerHTML = Array.from({length: Math.max(len, 4)}, (_, i) =>
+    `<div class="lock-dot${i < len ? ' filled' : ''}"></div>`
+  ).join('');
+}
+
+function lockKeyPress(digit) {
+  if (_lockInput.length >= 6) return;
+  _lockInput += digit;
+  renderLockDots();
+  if (_lockInput.length >= 4) {
+    // 4자리 이상이면 자동 검사는 하지 않고 최대 6자리까지 입력 후 엔터 대기
+    // 6자리가 되면 자동 확인
+    if (_lockInput.length === 6) { lockVerify(); }
+  }
+}
+
+function lockKeyDel() {
+  if (_lockInput.length > 0) { _lockInput = _lockInput.slice(0, -1); }
+  renderLockDots();
+  document.getElementById('lockErr').textContent = '';
+}
+
+async function lockVerify() {
+  const saved = localStorage.getItem(PW_KEY);
+  if (!saved) { lockUnlock(); return; }
+  const hash = await sha256hex(_lockInput);
+  if (hash === saved) {
+    lockUnlock();
+  } else {
+    const box = document.getElementById('lockBox');
+    document.getElementById('lockErr').textContent = '비밀번호가 틀렸습니다.';
+    box.classList.add('shake');
+    setTimeout(() => box.classList.remove('shake'), 400);
+    _lockInput = '';
+    renderLockDots();
+  }
+}
+
+function lockUnlock() {
+  const el = document.getElementById('lockScreen');
+  if (el) el.style.display = 'none';
+  document.removeEventListener('keydown', lockKeyboardHandler);
+  _lockInput = '';
+}
+
+// 잠금 화면에서 엔터 키 처리 (4자리 이상일 때 확인)
+document.addEventListener('keydown', function(e) {
+  if (document.getElementById('lockScreen')?.style.display !== 'none' &&
+      document.getElementById('lockScreen')?.style.display !== '') {
+    if (e.key === 'Enter' && _lockInput.length >= 4) { lockVerify(); }
+  }
+});
+
+// ── 비밀번호 설정 모달 ──────────────────────────
+function openPwSetModal() {
+  closeOverlay('apiOverlay');
+  const hasPw = !!localStorage.getItem(PW_KEY);
+  document.getElementById('pwStep0').classList.toggle('active', hasPw);
+  document.getElementById('pwStep1').classList.toggle('active', !hasPw);
+  document.getElementById('pwRemoveBtn').style.display = hasPw ? '' : 'none';
+  document.getElementById('pwCurrentInp').value = '';
+  document.getElementById('pwNewInp').value = '';
+  document.getElementById('pwConfirmInp').value = '';
+  document.getElementById('pwCurrentErr').textContent = '';
+  document.getElementById('pwNewErr').textContent = '';
+  document.getElementById('pwSetOverlay').style.display = 'flex';
+}
+
+async function pwConfirmCurrent() {
+  const val = document.getElementById('pwCurrentInp').value;
+  if (!val) { document.getElementById('pwCurrentErr').textContent = '비밀번호를 입력하세요.'; return; }
+  const hash = await sha256hex(val);
+  if (hash !== localStorage.getItem(PW_KEY)) {
+    document.getElementById('pwCurrentErr').textContent = '비밀번호가 틀렸습니다.';
+    return;
+  }
+  document.getElementById('pwStep0').classList.remove('active');
+  document.getElementById('pwStep1').classList.add('active');
+  document.getElementById('pwCurrentErr').textContent = '';
+}
+
+async function pwSaveNew() {
+  const nv = document.getElementById('pwNewInp').value;
+  const cv = document.getElementById('pwConfirmInp').value;
+  const errEl = document.getElementById('pwNewErr');
+  if (!nv || nv.length < 4) { errEl.textContent = '4자리 이상 숫자를 입력하세요.'; return; }
+  if (nv !== cv) { errEl.textContent = '비밀번호가 일치하지 않습니다.'; return; }
+  const hash = await sha256hex(nv);
+  localStorage.setItem(PW_KEY, hash);
+  closeOverlay('pwSetOverlay');
+  toast('비밀번호가 설정되었습니다.', 'success');
+}
+
+async function pwRemove() {
+  const saved = localStorage.getItem(PW_KEY);
+  if (saved) {
+    const nv = document.getElementById('pwNewInp').value;
+    // 빈 값이면 그냥 해제 확인
+    if (!confirm('비밀번호를 해제하시겠습니까?')) return;
+  }
+  localStorage.removeItem(PW_KEY);
+  closeOverlay('pwSetOverlay');
+  toast('비밀번호가 해제되었습니다.', 'info');
+}
+
+// ══════════════════════════════════════════════════
+// 기능 2: 엑셀 붙여넣기 자동 배분
+// ══════════════════════════════════════════════════
+function handleCharTaPaste(e, sid, secId) {
+  const text = (e.clipboardData || window.clipboardData).getData('text');
+  const lines = text.split('\n').map(l => l.split('\t')[0].trimEnd()).filter((l, i, a) => i < a.length - 1 || l !== '');
+  // 마지막 빈 줄 제거
+  const cleanLines = lines[lines.length - 1] === '' ? lines.slice(0, -1) : lines;
+  if (cleanLines.length <= 1) return; // 1줄이면 일반 붙여넣기
+  e.preventDefault();
+  const sec = getSection(secId);
+  if (!sec) return;
+  const startIdx = S.students.findIndex(s => s.id === sid);
+  if (startIdx < 0) return;
+  ensureEntries(sec);
+  let count = 0;
+  cleanLines.forEach((line, i) => {
+    const student = S.students[startIdx + i];
+    if (!student) return;
+    if (!sec.entries[student.id]) sec.entries[student.id] = { chars: '', result: '' };
+    sec.entries[student.id].chars = line;
+    count++;
+  });
+  saveStore();
+  renderContent();
+  toast(`${count}명에게 붙여넣었습니다.`, 'success');
+}
+
+// ══════════════════════════════════════════════════
+// 기능 3: 사용방법 모달
+// ══════════════════════════════════════════════════
+function openManualModal() {
+  document.getElementById('manualOverlay').style.display = 'flex';
 }
 
 function manualSave() {

@@ -180,6 +180,49 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#94a3b8}
 
+/* ─── Lock Screen ─── */
+#lockScreen{position:fixed;inset:0;background:rgba(15,23,42,.85);backdrop-filter:blur(8px);z-index:9999;display:flex;align-items:center;justify-content:center}
+.lock-box{background:#fff;border-radius:18px;padding:36px 32px 28px;width:320px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.3)}
+.lock-icon{font-size:38px;margin-bottom:12px}
+.lock-title{font-size:17px;font-weight:700;color:#1e293b;margin-bottom:20px}
+.lock-dots{display:flex;justify-content:center;gap:12px;margin-bottom:6px;min-height:22px}
+.lock-dot{width:14px;height:14px;border-radius:50%;background:#e2e8f0;transition:background .15s}
+.lock-dot.filled{background:#0f766e}
+.lock-error{font-size:13px;color:#dc2626;margin-bottom:12px;min-height:20px}
+.lock-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+.lock-key{height:56px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:20px;font-weight:600;color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;user-select:none}
+.lock-key:hover{background:#f0fdf4;border-color:#0f766e;color:#0f766e}
+.lock-key:active{transform:scale(.93)}
+.lock-key.del{font-size:16px;color:#64748b}
+.lock-key.del:hover{background:#fff1f2;border-color:#fca5a5;color:#dc2626}
+.lock-key.enter{background:#0f766e;color:#fff;border-color:#0f766e;font-size:14px;font-weight:700}
+.lock-key.enter:hover{background:#0d6460}
+.lock-shake{animation:lockShake .4s ease}
+@keyframes lockShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* ─── Password Modal ─── */
+#pwModalOverlay .modal{max-width:400px}
+.pw-step{display:none}.pw-step.active{display:block}
+.pw-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.pw-key{height:52px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:18px;font-weight:600;color:#1e293b;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;user-select:none}
+.pw-key:hover{background:#f0fdf4;border-color:#0f766e;color:#0f766e}
+.pw-key:active{transform:scale(.93)}
+.pw-key.del{font-size:15px;color:#64748b}
+.pw-key.del:hover{background:#fff1f2;border-color:#fca5a5;color:#dc2626}
+.pw-dots{display:flex;justify-content:center;gap:12px;margin:12px 0;min-height:20px}
+.pw-dot{width:14px;height:14px;border-radius:50%;background:#e2e8f0;transition:background .15s}
+.pw-dot.filled{background:#0f766e}
+.pw-link{text-align:center;margin-top:14px;font-size:13px;color:#64748b}
+.pw-link a{color:#0f766e;cursor:pointer;text-decoration:underline}
+
+/* ─── Manual Modal ─── */
+#manualOverlay .modal{max-width:620px}
+.manual-section{margin-bottom:18px}
+.manual-section h3{font-size:14px;font-weight:700;color:#0f766e;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.manual-section ul{padding-left:18px;font-size:13px;color:#374151;line-height:1.9}
+.manual-section ul li{margin-bottom:3px}
+.manual-hl{background:#f0fdf4;border-left:3px solid #0f766e;padding:8px 12px;border-radius:0 6px 6px 0;font-size:13px;color:#065f46;margin:6px 0}
+
 /* ─── Mobile Responsive ─── */
 @media (max-width: 768px) {
   .header{height:auto;padding:10px 14px;flex-wrap:wrap;gap:8px}
@@ -240,6 +283,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <button class="btn btn-outline" onclick="triggerStudentUpload()">👥 <span class="btn-label">명단 업로드</span></button>
     <button class="btn btn-outline" onclick="triggerUpload()">📂 <span class="btn-label">엑셀 불러오기</span></button>
     <button class="btn btn-outline" onclick="downloadXLSX()">⬇️ <span class="btn-label">엑셀 다운로드</span></button>
+    <button class="btn btn-outline" onclick="openManual()">📖 <span class="btn-label">사용방법</span></button>
   </div>
 </header>
 
@@ -275,6 +319,9 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <label class="field-label">API 키 <span style="font-weight:400;color:#94a3b8">(없으면 비워두세요)</span></label>
     <input type="password" class="field-input" id="apiKeyInp" placeholder="API 키를 입력하세요">
     <div id="provNote" style="margin-top:8px;font-size:12px;color:#94a3b8;line-height:1.5"></div>
+    <div class="pw-link" style="margin-top:18px;padding-top:14px;border-top:1px solid #f1f5f9">
+      <a onclick="openPwModal()">🔒 비밀번호 설정/변경</a>
+    </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="clearApiKey()">키 초기화</button>
       <button class="btn btn-outline" onclick="closeOverlay('apiOverlay')">취소</button>
@@ -332,6 +379,155 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 
 <input type="file" id="fileInp" accept=".xlsx,.xls" style="display:none" onchange="handleFileUpload(event)">
 <input type="file" id="studentListInp" accept=".xlsx,.xls" style="display:none" onchange="handleStudentListUpload(event)">
+
+<!-- 잠금 화면 -->
+<div id="lockScreen" style="display:none">
+  <div class="lock-box" id="lockBox">
+    <div class="lock-icon">🔒</div>
+    <div class="lock-title">비밀번호를 입력하세요</div>
+    <div class="lock-dots" id="lockDots"></div>
+    <div class="lock-error" id="lockError"></div>
+    <div class="lock-keypad">
+      <div class="lock-key" onclick="lockKeyPress('1')">1</div>
+      <div class="lock-key" onclick="lockKeyPress('2')">2</div>
+      <div class="lock-key" onclick="lockKeyPress('3')">3</div>
+      <div class="lock-key" onclick="lockKeyPress('4')">4</div>
+      <div class="lock-key" onclick="lockKeyPress('5')">5</div>
+      <div class="lock-key" onclick="lockKeyPress('6')">6</div>
+      <div class="lock-key" onclick="lockKeyPress('7')">7</div>
+      <div class="lock-key" onclick="lockKeyPress('8')">8</div>
+      <div class="lock-key" onclick="lockKeyPress('9')">9</div>
+      <div class="lock-key del" onclick="lockKeyDel()">⌫</div>
+      <div class="lock-key" onclick="lockKeyPress('0')">0</div>
+      <div class="lock-key enter" onclick="lockSubmit()">확인</div>
+    </div>
+  </div>
+</div>
+
+<!-- 비밀번호 설정 모달 -->
+<div class="overlay" id="pwModalOverlay" style="display:none">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOverlay('pwModalOverlay')">×</button>
+    <div class="modal-title">🔒 비밀번호 설정/변경</div>
+
+    <!-- Step 1: 현재 비밀번호 확인 (설정된 경우만) -->
+    <div class="pw-step" id="pwStep1">
+      <p style="font-size:13px;color:#64748b;margin-bottom:12px">현재 비밀번호를 입력하세요.</p>
+      <div class="pw-dots" id="pwDots1"></div>
+      <div id="pwError1" style="font-size:12.5px;color:#dc2626;min-height:18px;text-align:center;margin-bottom:4px"></div>
+      <div class="pw-numpad" id="pwPad1"></div>
+    </div>
+
+    <!-- Step 2: 새 비밀번호 입력 -->
+    <div class="pw-step" id="pwStep2">
+      <p style="font-size:13px;color:#64748b;margin-bottom:12px">새 비밀번호를 입력하세요. <span style="color:#94a3b8">(숫자 4~6자리)</span></p>
+      <div class="pw-dots" id="pwDots2"></div>
+      <div id="pwError2" style="font-size:12.5px;color:#dc2626;min-height:18px;text-align:center;margin-bottom:4px"></div>
+      <div class="pw-numpad" id="pwPad2"></div>
+    </div>
+
+    <!-- Step 3: 새 비밀번호 확인 -->
+    <div class="pw-step" id="pwStep3">
+      <p style="font-size:13px;color:#64748b;margin-bottom:12px">새 비밀번호를 한 번 더 입력하세요.</p>
+      <div class="pw-dots" id="pwDots3"></div>
+      <div id="pwError3" style="font-size:12.5px;color:#dc2626;min-height:18px;text-align:center;margin-bottom:4px"></div>
+      <div class="pw-numpad" id="pwPad3"></div>
+    </div>
+
+    <div class="modal-footer" style="justify-content:space-between;align-items:center">
+      <button class="btn btn-ghost" id="pwRemoveBtn" onclick="removePassword()" style="color:#dc2626;display:none">🗑️ 비밀번호 해제</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline" onclick="closeOverlay('pwModalOverlay')">취소</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 사용방법 모달 -->
+<div class="overlay" id="manualOverlay" style="display:none">
+  <div class="modal modal-lg">
+    <button class="modal-close" onclick="closeOverlay('manualOverlay')">×</button>
+    <div class="modal-title">📖 사용방법 — 생기부 작성 도우미 Ⅱ</div>
+    <div style="max-height:70vh;overflow-y:auto;padding-right:6px">
+
+      <div class="manual-section">
+        <h3>1. 기본 사용법</h3>
+        <ul>
+          <li>상단 [+] 버튼으로 과목 탭 추가 → 탭 이름에 과목명 입력 (예: 2학년 통합과학)</li>
+          <li>탭 이름을 더블클릭하면 과목명 수정 가능</li>
+          <li>과목명에 따라 교과군이 자동 판별되어 맞춤형 문장이 생성됨</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>2. 교과군 자동 판별</h3>
+        <ul>
+          <li>탭 이름의 키워드로 자동 분류: 국어/수학/영어/과학/사회/역사/도덕/체육/음악/미술/정보/기술·가정/제2외국어/한문/교양</li>
+          <li>예) "2학년 법과 정치" → 사회, "생명과학 Ⅱ" → 과학</li>
+          <li>띄어쓰기 무관하게 판별됨</li>
+          <li>분류된 교과군에 맞는 핵심역량 기준으로 문장 생성</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>3. 명단 업로드</h3>
+        <ul>
+          <li>엑셀 파일 준비: A열=번호, B열=이름, 1행=헤더</li>
+          <li>[👥 명단 업로드] 클릭하여 파일 선택</li>
+          <li>기존 입력 데이터는 순서에 맞게 유지됨</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>4. 엑셀에서 학생 특성 일괄 붙여넣기 ★</h3>
+        <div class="manual-hl">엑셀에서 수업 관찰 내용이 입력된 셀들을 복사(Ctrl+C) → 첫 번째 학생의 "수업 관찰 내용" 칸 클릭 후 붙여넣기(Ctrl+V) → 자동으로 아래 학생들까지 순서대로 채워짐</div>
+        <ul>
+          <li>각 행이 한 명의 학생 데이터로 배분됨</li>
+          <li>붙여넣은 행 수만큼 학생 칸이 채워지며 토스트 메시지로 확인 가능</li>
+          <li>줄이 1개이면 일반 붙여넣기처럼 동작 (자동 배분 없음)</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>5. AI API 설정</h3>
+        <ul>
+          <li>[⚙️ API 설정] 클릭 → AI 서비스와 API 키 입력</li>
+          <li>API 키 없이도 프롬프트 복사 모드로 ChatGPT 등에서 사용 가능</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>6. 엑셀 저장/불러오기</h3>
+        <ul>
+          <li>[엑셀 다운로드]: 과목별 시트로 전체 저장</li>
+          <li>[엑셀 불러오기]: 저장한 파일로 복원</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>7. 비밀번호 설정 🔒</h3>
+        <ul>
+          <li>[⚙️ API 설정] 하단의 "🔒 비밀번호 설정/변경" 클릭</li>
+          <li>숫자 4~6자리로 설정</li>
+          <li>이후 앱 접속 시 비밀번호 입력 화면 표시</li>
+          <li>비밀번호를 잊으면 브라우저 개발자 도구에서 localStorage 초기화 필요</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>8. 데이터 저장</h3>
+        <ul>
+          <li>입력 내용은 브라우저에 자동 저장됨 (같은 브라우저에서만 유지)</li>
+          <li>중요 데이터는 [엑셀 다운로드]로 백업 권장</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeOverlay('manualOverlay')">닫기</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -390,6 +586,7 @@ let busyAll = false;
 // ══════════════════════════════════════════════════
 function init() {
   loadStore();
+  checkPasswordLock();
   if (!S.students.length) {
     S.students = Array.from({length:5}, mkStudent);
   }
@@ -714,6 +911,7 @@ function renderRow(student, rowNum, sec) {
         placeholder="수업 중 관찰한 학생의 활동·태도·역량 등을 자유롭게 입력하세요.&#10;활동이 여러 개면 줄바꿈으로 구분하세요.&#10;&#10;예) 산화환원 단원에서 전자 이동 개념을 직접 도식화하여 모둠원에게 설명함. 탐구 보고서를 작성하여 발표함."
         oninput="fitHeight(this)"
         onchange="patchEntry('${student.id}','${sec.id}','chars',this.value)"
+        onpaste="handleCharTaPaste(event,'${student.id}','${sec.id}')"
       >${esc(entry.chars)}</textarea>
     </td>
     <td class="td-result">
@@ -1234,6 +1432,231 @@ function updateBadge() {
 function showOverlay(id){const el=document.getElementById(id);if(el)el.style.display='flex';}
 function closeOverlay(id){const el=document.getElementById(id);if(el)el.style.display='none';}
 document.addEventListener('click',e=>{if(e.target.classList.contains('overlay'))closeOverlay(e.target.id);});
+
+// ══════════════════════════════════════════════════
+// PASSWORD LOCK
+// ══════════════════════════════════════════════════
+const PW_KEY = 'saenggibu_v2_pw';
+
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function checkPasswordLock() {
+  const hash = localStorage.getItem(PW_KEY);
+  if (!hash) return;
+  const ls = document.getElementById('lockScreen');
+  ls.style.display = 'flex';
+  renderLockDots(0);
+}
+
+let lockInput = '';
+
+function renderLockDots(n) {
+  const c = document.getElementById('lockDots');
+  let h = '';
+  for (let i=0; i<Math.max(n,4); i++) h += `<div class="lock-dot${i<n?' filled':''}"></div>`;
+  c.innerHTML = h;
+}
+
+function lockKeyPress(d) {
+  if (lockInput.length >= 6) return;
+  lockInput += d;
+  renderLockDots(lockInput.length);
+  document.getElementById('lockError').textContent = '';
+}
+
+function lockKeyDel() {
+  if (!lockInput.length) return;
+  lockInput = lockInput.slice(0,-1);
+  renderLockDots(lockInput.length);
+}
+
+async function lockSubmit() {
+  if (lockInput.length < 4) {
+    showLockError('4자리 이상 입력하세요.');
+    return;
+  }
+  const hash = await sha256(lockInput);
+  const stored = localStorage.getItem(PW_KEY);
+  if (hash === stored) {
+    document.getElementById('lockScreen').style.display = 'none';
+    lockInput = '';
+  } else {
+    showLockError('비밀번호가 틀렸습니다.');
+    lockInput = '';
+    renderLockDots(0);
+  }
+}
+
+function showLockError(msg) {
+  const el = document.getElementById('lockError');
+  el.textContent = msg;
+  const box = document.getElementById('lockBox');
+  box.classList.remove('lock-shake');
+  void box.offsetWidth;
+  box.classList.add('lock-shake');
+  setTimeout(()=>box.classList.remove('lock-shake'), 500);
+}
+
+document.addEventListener('keydown', function(e) {
+  if (document.getElementById('lockScreen').style.display === 'none') return;
+  if (e.key >= '0' && e.key <= '9') lockKeyPress(e.key);
+  else if (e.key === 'Backspace') lockKeyDel();
+  else if (e.key === 'Enter') lockSubmit();
+});
+
+// ── 비밀번호 설정 모달 ──
+let pwState = { step: 1, buf1:'', buf2:'', buf3:'' };
+
+function openPwModal() {
+  closeOverlay('apiOverlay');
+  pwState = { step:1, buf1:'', buf2:'', buf3:'' };
+  const hasPw = !!localStorage.getItem(PW_KEY);
+  // 비밀번호 없으면 step1 건너뛰고 step2부터
+  pwState.step = hasPw ? 1 : 2;
+  document.getElementById('pwRemoveBtn').style.display = hasPw ? '' : 'none';
+  renderPwStep();
+  document.getElementById('pwModalOverlay').style.display = 'flex';
+}
+
+function renderPwStep() {
+  [1,2,3].forEach(n => {
+    const el = document.getElementById('pwStep'+n);
+    el.classList.toggle('active', n === pwState.step);
+    document.getElementById('pwDots'+n).innerHTML = '';
+    document.getElementById('pwError'+n).textContent = '';
+    document.getElementById('pwPad'+n).innerHTML = buildPwPad(n);
+  });
+  renderPwDots(pwState.step, 0);
+}
+
+function buildPwPad(step) {
+  let h = '';
+  [1,2,3,4,5,6,7,8,9].forEach(n => {
+    h += `<div class="pw-key" onclick="pwKeyPress(${step},'${n}')">${n}</div>`;
+  });
+  h += `<div class="pw-key del" onclick="pwKeyDel(${step})">⌫</div>`;
+  h += `<div class="pw-key" onclick="pwKeyPress(${step},'0')">0</div>`;
+  h += `<div class="pw-key enter" onclick="pwKeyNext(${step})" style="background:#0f766e;color:#fff;border-color:#0f766e;font-size:14px;font-weight:700">확인</div>`;
+  return h;
+}
+
+function renderPwDots(step, n) {
+  const c = document.getElementById('pwDots'+step);
+  let h = '';
+  for (let i=0; i<Math.max(n,4); i++) h += `<div class="pw-dot${i<n?' filled':''}"></div>`;
+  c.innerHTML = h;
+}
+
+function getBuf(step) {
+  if (step===1) return pwState.buf1;
+  if (step===2) return pwState.buf2;
+  return pwState.buf3;
+}
+function setBuf(step, val) {
+  if (step===1) pwState.buf1 = val;
+  else if (step===2) pwState.buf2 = val;
+  else pwState.buf3 = val;
+}
+
+function pwKeyPress(step, d) {
+  if (step !== pwState.step) return;
+  let buf = getBuf(step);
+  if (buf.length >= 6) return;
+  buf += d;
+  setBuf(step, buf);
+  renderPwDots(step, buf.length);
+  document.getElementById('pwError'+step).textContent = '';
+}
+
+function pwKeyDel(step) {
+  if (step !== pwState.step) return;
+  let buf = getBuf(step);
+  buf = buf.slice(0,-1);
+  setBuf(step, buf);
+  renderPwDots(step, buf.length);
+}
+
+async function pwKeyNext(step) {
+  if (step !== pwState.step) return;
+  const buf = getBuf(step);
+  const hasPw = !!localStorage.getItem(PW_KEY);
+
+  if (step === 1) {
+    // 현재 비밀번호 검증
+    if (buf.length < 4) { document.getElementById('pwError1').textContent = '4자리 이상 입력하세요.'; return; }
+    const hash = await sha256(buf);
+    if (hash !== localStorage.getItem(PW_KEY)) {
+      document.getElementById('pwError1').textContent = '비밀번호가 틀렸습니다.';
+      pwState.buf1 = '';
+      renderPwDots(1, 0);
+      return;
+    }
+    pwState.step = 2;
+    renderPwStep();
+  } else if (step === 2) {
+    if (buf.length < 4) { document.getElementById('pwError2').textContent = '4~6자리 숫자를 입력하세요.'; return; }
+    pwState.step = 3;
+    renderPwStep();
+  } else if (step === 3) {
+    if (buf !== pwState.buf2) {
+      document.getElementById('pwError3').textContent = '비밀번호가 일치하지 않습니다.';
+      pwState.buf3 = '';
+      renderPwDots(3, 0);
+      return;
+    }
+    const hash = await sha256(buf);
+    localStorage.setItem(PW_KEY, hash);
+    closeOverlay('pwModalOverlay');
+    toast('비밀번호가 설정되었습니다.', 'success');
+  }
+}
+
+function removePassword() {
+  localStorage.removeItem(PW_KEY);
+  closeOverlay('pwModalOverlay');
+  toast('비밀번호가 해제되었습니다.', 'success');
+}
+
+// ══════════════════════════════════════════════════
+// EXCEL PASTE AUTO-DISTRIBUTE
+// ══════════════════════════════════════════════════
+function handleCharTaPaste(e, sid, secId) {
+  const text = e.clipboardData && e.clipboardData.getData('text');
+  if (!text) return;
+  const lines = text.split('\n').map(l => l.split('\t')[0].replace(/\r$/, ''));
+  if (lines.length <= 1) return; // 일반 붙여넣기
+  e.preventDefault();
+
+  const sec = getSection(secId);
+  if (!sec) return;
+
+  // 현재 학생 인덱스 찾기
+  const startIdx = S.students.findIndex(s => s.id === sid);
+  if (startIdx < 0) return;
+
+  let count = 0;
+  lines.forEach((line, i) => {
+    const st = S.students[startIdx + i];
+    if (!st) return;
+    if (!sec.entries[st.id]) sec.entries[st.id] = {chars:'', result:''};
+    sec.entries[st.id].chars = line;
+    count++;
+  });
+
+  saveStore();
+  renderContent();
+  toast(`${count}명에게 붙여넣었습니다.`, 'success');
+}
+
+// ══════════════════════════════════════════════════
+// MANUAL
+// ══════════════════════════════════════════════════
+function openManual() {
+  document.getElementById('manualOverlay').style.display = 'flex';
+}
 
 // ══════════════════════════════════════════════════
 // SAVE / LOAD / RESET
