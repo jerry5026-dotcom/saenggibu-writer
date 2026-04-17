@@ -723,9 +723,8 @@ function addSection(name, silent) {
 
 function deleteSection(id, e) {
   e?.stopPropagation();
-  if (S.sections.length <= 1) { toast('마지막 과목은 삭제할 수 없습니다.', 'error'); return; }
   S.sections = S.sections.filter(s=>s.id!==id);
-  if (S.activeSecId === id) S.activeSecId = S.sections[0].id;
+  if (S.activeSecId === id) S.activeSecId = S.sections[0]?.id ?? null;
   saveStore(); renderTabs(); renderContent();
 }
 
