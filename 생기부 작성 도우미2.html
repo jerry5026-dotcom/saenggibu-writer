@@ -572,6 +572,13 @@ function renderTabs() {
     tab.onclick = (e) => {
       if (e.target.classList.contains('tab-close')) return;
       if (e.target.classList.contains('tab-name') && e.target.isContentEditable) return;
+      // tab-name 클릭 시 renderTabs() 생략 — DOM 재생성하면 dblclick 두 번째 이벤트가 사라진 요소로 전달되어 rename 불가
+      if (e.target.classList.contains('tab-name')) {
+        S.activeSecId = sec.id; saveStore();
+        document.querySelectorAll('#tabsBar .tab').forEach(t => t.classList.toggle('active', t.dataset.id === sec.id));
+        renderContent();
+        return;
+      }
       S.activeSecId = sec.id; saveStore(); renderTabs(); renderContent();
     };
     bar.insertBefore(tab, addWrap);
@@ -590,7 +597,14 @@ function startRename(el, e) {
     if (sec) {
       sec.name = el.textContent.trim() || sec.name;
       el.textContent = sec.name;
-      saveStore(); renderTabs(); renderContent();
+      saveStore();
+      // 이름 변경 → 교과군 재판별 → 탭 dot 색상 업데이트
+      const newDot = getSubjectDot(sec.name);
+      const dotEl = el.closest('.tab').querySelector('.tab-dot');
+      if (dotEl) {
+        dotEl.className = 'tab-dot ' + newDot;
+      }
+      renderContent(); // 툴바의 sec-label-badge 색상도 갱신
     }
   };
   el.addEventListener('blur', finish, {once:true});
