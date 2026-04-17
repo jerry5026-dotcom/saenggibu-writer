@@ -352,6 +352,33 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
   </div>
 </div>
 
+<!-- 탭 삭제 확인 -->
+<div class="overlay" id="deleteSectionOverlay" style="display:none">
+  <div class="modal" style="max-width:380px">
+    <div class="modal-title">🗂️ 탭 삭제 확인</div>
+    <p style="color:#475569;font-size:14px;line-height:1.7;margin:0 0 6px">
+      이 탭의 모든 입력 내용이 <strong style="color:#dc2626">삭제</strong>됩니다.<br>
+      이 작업은 되돌릴 수 없습니다. 계속하시겠습니까?
+    </p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('deleteSectionOverlay')">취소</button>
+      <button class="btn btn-primary" style="background:#dc2626;border-color:#dc2626" onclick="confirmDeleteSection()">삭제</button>
+    </div>
+  </div>
+</div>
+
+<!-- Excel / 명단 불러오기 확인 -->
+<div class="overlay" id="uploadConfirmOverlay" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-title">⚠️ 불러오기 확인</div>
+    <p style="color:#475569;font-size:14px;line-height:1.7;margin:0 0 6px" id="uploadConfirmMsg"></p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('uploadConfirmOverlay')">취소</button>
+      <button class="btn btn-primary" style="background:#dc2626;border-color:#dc2626" onclick="confirmUpload()">불러오기</button>
+    </div>
+  </div>
+</div>
+
 <!-- 프롬프트 복사 -->
 <div class="overlay" id="promptOverlay" style="display:none">
   <div class="modal modal-lg">
@@ -572,6 +599,9 @@ let modifyTarget = null;
 let promptBuffer = '';
 let busyAll = false;
 let pickerOpen = false;
+let _pendingDeleteSecId = null;
+let _pendingFile = null;
+let _pendingUploadType = null;
 
 // ══════════════════════════════════════════════════
 // INIT
@@ -645,6 +675,14 @@ function addSection(type, silent) {
 
 function deleteSection(id, e) {
   e?.stopPropagation();
+  _pendingDeleteSecId = id;
+  showOverlay('deleteSectionOverlay');
+}
+function confirmDeleteSection() {
+  closeOverlay('deleteSectionOverlay');
+  const id = _pendingDeleteSecId;
+  _pendingDeleteSecId = null;
+  if (!id) return;
   S.sections = S.sections.filter(s=>s.id!==id);
   if (S.activeSecId === id) S.activeSecId = S.sections[0]?.id ?? null;
   saveStore();
@@ -770,6 +808,9 @@ function renderContent() {
   if (!sec) { el.innerHTML = '<div style="text-align:center;padding:60px;color:#94a3b8">상단 + 버튼으로 영역을 추가하세요.</div>'; return; }
   ensureEntries(sec);
   const st = getSecType(sec.type);
+  const completedCount = S.students.filter(s => sec.entries[s.id]?.result?.trim()).length;
+  const totalCount = S.students.length;
+  const allDone = completedCount > 0 && completedCount === totalCount;
 
   el.innerHTML = `
     <div class="class-toolbar">
@@ -779,6 +820,7 @@ function renderContent() {
         onchange="onByteLimitChange('${sec.id}',this.value)">
       <div class="toolbar-sep"></div>
       <button class="btn btn-outline btn-sm" onclick="generateAll('${sec.id}')" id="genAllBtn">⚡ 전체 생성하기</button>
+      <span style="margin-left:auto;font-size:13px;color:#64748b;white-space:nowrap">완료 <strong style="color:${allDone?'#16a34a':'#0f172a'}">${completedCount}</strong> / ${totalCount}명</span>
     </div>
     <div class="table-wrap">
       <table>
@@ -809,6 +851,9 @@ function renderRow(student, rowNum, sec) {
   const isGood = bytes>0 && ratio>=0.7 && ratio<=1.05;
   const isOver = ratio>1.05;
   const barCls = isOver?'over':isGood?'good':'';
+  const statusDot = hasResult
+    ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0" title="생성 완료"></span>`
+    : `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d1d5db;flex-shrink:0" title="미생성"></span>`;
 
   const resultHTML = hasResult ? `
     <textarea class="result-ta"
@@ -833,7 +878,7 @@ function renderRow(student, rowNum, sec) {
         onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
         onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this);showResultFooter(this,'${student.id}','${sec.id}',${sec.byteLimit})},0)"
       ></textarea>
-      <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:none">
+      <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
         <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
           <div class="byte-bar"><div class="byte-bar-fill" id="bar-${student.id}-${sec.id}" style="width:0%"></div></div>
           <span class="byte-count" id="cnt-${student.id}-${sec.id}">0 B / 0 자</span>
@@ -856,8 +901,11 @@ function renderRow(student, rowNum, sec) {
       <div class="row-badge">${esc(student.num) || rowNum}</div>
     </td>
     <td class="td-name">
-      <input type="text" class="name-inp" value="${esc(student.name)}" placeholder="이름"
-        onchange="patchStudent('${student.id}','name',this.value)">
+      <div style="display:flex;align-items:center;gap:6px">
+        ${statusDot}
+        <input type="text" class="name-inp" value="${esc(student.name)}" placeholder="이름"
+          onchange="patchStudent('${student.id}','name',this.value)">
+      </div>
     </td>
     <td class="td-input">
       <textarea class="char-ta"
@@ -878,7 +926,17 @@ function renderRow(student, rowNum, sec) {
 // ══════════════════════════════════════════════════
 function patchStudent(sid, field, val) {
   const s = S.students.find(x=>x.id===sid);
-  if (s) { s[field]=val; saveStore(); }
+  if (s) {
+    if (field === 'name' && val.trim()) {
+      const dup = S.students.find(x=>x.id!==sid && x.name.trim()===val.trim());
+      if (dup) toast(`'${val}' 이름이 이미 존재합니다.`, 'error');
+    }
+    if (field === 'num' && val.trim()) {
+      const dup = S.students.find(x=>x.id!==sid && x.num.trim()===val.trim());
+      if (dup) toast(`'${val}' 번호가 이미 존재합니다.`, 'error');
+    }
+    s[field]=val; saveStore();
+  }
 }
 
 function patchEntry(sid, secId, field, val) {
@@ -910,11 +968,9 @@ function onResultInput(sid, secId, val, byteLimit) {
 
 // 붙여넣기·직접 입력 시 푸터 전환 (생성하기 버튼 → 바이트 카운터+액션 버튼)
 function showResultFooter(ta, sid, secId, byteLimit) {
-  const hasText = ta.value.trim().length > 0;
   const rfGen = document.getElementById(`rf-gen-${sid}-${secId}`);
-  const rfInfo = document.getElementById(`rf-${sid}-${secId}`);
-  if (rfGen)  rfGen.style.display  = hasText ? 'none'  : 'flex';
-  if (rfInfo) rfInfo.style.display = hasText ? 'flex'  : 'none';
+  if (rfGen) rfGen.style.display = ta.value.trim().length > 0 ? 'none' : 'flex';
+  // 바이트 카운터(rf-*)는 항상 표시
 }
 
 // ══════════════════════════════════════════════════
@@ -1525,6 +1581,15 @@ function triggerStudentUpload(){document.getElementById('studentListInp').click(
 // ── 학생 명단 업로드 (A열: 번호, B열: 이름) ────────────────
 function handleStudentListUpload(e) {
   const file = e.target.files[0]; if (!file) return;
+  _pendingFile = file;
+  _pendingUploadType = 'student';
+  e.target.value = '';
+  document.getElementById('uploadConfirmMsg').innerHTML =
+    '학생 명단을 불러오면 현재 학생 목록이 <strong style="color:#dc2626">덮어씌워</strong>집니다.<br>계속하시겠습니까?';
+  showOverlay('uploadConfirmOverlay');
+}
+
+function _doStudentListUpload(file) {
   const reader = new FileReader();
   reader.onload = ev => {
     try {
@@ -1532,7 +1597,6 @@ function handleStudentListUpload(e) {
       if (!wb.SheetNames.length) throw new Error('시트가 없습니다.');
       const ws = wb.Sheets[wb.SheetNames[0]];
       const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-      // 1행은 항상 헤더로 처리하고 2행부터 데이터 읽기
       const dataRows = rows.slice(1).filter(r => String(r[0]||'').trim() || String(r[1]||'').trim());
       if (!dataRows.length) throw new Error('데이터가 없습니다. A열: 번호, B열: 이름 형식인지 확인하세요.');
 
@@ -1542,7 +1606,6 @@ function handleStudentListUpload(e) {
         name: String(row[1]||'').trim()
       }));
 
-      // 기존 학생 수와 비교하여 섹션 entries 재구성
       const oldStudents = S.students;
       S.students = newStudents;
       S.sections.forEach(sec => {
@@ -1559,12 +1622,20 @@ function handleStudentListUpload(e) {
     } catch(err) { toast('파일 오류: ' + err.message, 'error'); }
   };
   reader.readAsArrayBuffer(file);
-  e.target.value = '';
 }
 
 // ── Excel 불러오기 ──────────────────────────────────────
 function handleFileUpload(e) {
   const file = e.target.files[0]; if (!file) return;
+  _pendingFile = file;
+  _pendingUploadType = 'full';
+  e.target.value = '';
+  document.getElementById('uploadConfirmMsg').innerHTML =
+    'Excel을 불러오면 모든 탭과 입력 내용이 <strong style="color:#dc2626">덮어씌워</strong>집니다.<br>계속하시겠습니까?';
+  showOverlay('uploadConfirmOverlay');
+}
+
+function _doFileUpload(file) {
   const reader = new FileReader();
   reader.onload = ev => {
     try {
@@ -1577,18 +1648,16 @@ function handleFileUpload(e) {
       wb.SheetNames.forEach((sheetName, si) => {
         const ws  = wb.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
-        if (rows.length < 2) return; // 헤더만 있으면 skip
+        if (rows.length < 2) return;
 
-        const dataRows = rows.slice(1); // 첫 행은 헤더
+        const dataRows = rows.slice(1);
 
-        // 첫 번째 시트에서 학생 목록 구성
         if (si === 0) {
           dataRows.forEach(row => {
             newStudents.push({ id: uid(), num: String(row[0]||'').trim(), name: String(row[1]||'').trim() });
           });
         }
 
-        // 섹션 생성
         const stDef  = SEC_TYPES.find(s => s.v === sheetName);
         const sec = {
           id: uid(),
@@ -1620,7 +1689,16 @@ function handleFileUpload(e) {
     } catch(err) { toast('파일 오류: ' + err.message, 'error'); }
   };
   reader.readAsArrayBuffer(file);
-  e.target.value = '';
+}
+
+function confirmUpload() {
+  closeOverlay('uploadConfirmOverlay');
+  const file = _pendingFile;
+  const type = _pendingUploadType;
+  _pendingFile = null; _pendingUploadType = null;
+  if (!file) return;
+  if (type === 'student') _doStudentListUpload(file);
+  else _doFileUpload(file);
 }
 
 // ── Excel 다운로드 ─────────────────────────────────────
