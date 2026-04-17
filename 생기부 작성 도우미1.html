@@ -255,6 +255,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <button class="btn btn-outline" onclick="openApiModal()">⚙️ <span class="btn-label">API 설정</span></button>
     <button class="btn btn-outline" onclick="resetAll()" style="color:#dc2626;border-color:#fca5a5">🗑️ <span class="btn-label">초기화</span></button>
     <button class="btn btn-outline" id="saveBtn" onclick="manualSave()">💾 <span class="btn-label">저장</span></button>
+    <button class="btn btn-outline" onclick="triggerStudentUpload()">👥 <span class="btn-label">명단 업로드</span></button>
     <button class="btn btn-outline" onclick="triggerUpload()">📂 <span class="btn-label">엑셀 불러오기</span></button>
     <button class="btn btn-outline" onclick="downloadXLSX()">⬇️ <span class="btn-label">엑셀 다운로드</span></button>
   </div>
@@ -350,6 +351,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 </div>
 
 <input type="file" id="fileInp" accept=".xlsx,.xls" style="display:none" onchange="handleFileUpload(event)">
+<input type="file" id="studentListInp" accept=".xlsx,.xls" style="display:none" onchange="handleStudentListUpload(event)">
 <div class="toast" id="toast"></div>
 
 <script>
@@ -697,9 +699,7 @@ function renderRow(student, rowNum, sec) {
   return `
   <tr class="s-row" id="row-${student.id}-${sec.id}">
     <td class="td-num">
-      <div class="row-badge">${rowNum}</div>
-      <input type="text" class="num-sub" value="${esc(student.num)}" placeholder="번호"
-        onchange="patchStudent('${student.id}','num',this.value)">
+      <div class="row-badge">${esc(student.num) || rowNum}</div>
     </td>
     <td class="td-name">
       <input type="text" class="name-inp" value="${esc(student.name)}" placeholder="이름"
@@ -1190,6 +1190,49 @@ function manualSave() {
 }
 
 function triggerUpload(){document.getElementById('fileInp').click();}
+function triggerStudentUpload(){document.getElementById('studentListInp').click();}
+
+// ── 학생 명단 업로드 (A열: 번호, B열: 이름) ────────────────
+function handleStudentListUpload(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
+      if (!wb.SheetNames.length) throw new Error('시트가 없습니다.');
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+      // 헤더 행 자동 감지: 첫 행이 "번호"/"이름" 등 텍스트면 스킵
+      const firstRow = rows[0] || [];
+      const startIdx = (typeof firstRow[0] === 'string' && isNaN(firstRow[0].trim())) ? 1 : 0;
+      const dataRows = rows.slice(startIdx).filter(r => String(r[0]||'').trim() || String(r[1]||'').trim());
+      if (!dataRows.length) throw new Error('데이터가 없습니다. A열: 번호, B열: 이름 형식인지 확인하세요.');
+
+      const newStudents = dataRows.map(row => ({
+        id: uid(),
+        num: String(row[0]||'').trim(),
+        name: String(row[1]||'').trim()
+      }));
+
+      // 기존 학생 수와 비교하여 섹션 entries 재구성
+      const oldStudents = S.students;
+      S.students = newStudents;
+      S.sections.forEach(sec => {
+        const newEntries = {};
+        newStudents.forEach((st, i) => {
+          const oldSt = oldStudents[i];
+          newEntries[st.id] = (oldSt && sec.entries[oldSt.id]) ? sec.entries[oldSt.id] : {chars:'', result:''};
+        });
+        sec.entries = newEntries;
+      });
+
+      saveStore(); renderContent();
+      toast(`명단 업로드 완료! (${newStudents.length}명)`, 'success');
+    } catch(err) { toast('파일 오류: ' + err.message, 'error'); }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+}
 
 // ── Excel 불러오기 ──────────────────────────────────────
 function handleFileUpload(e) {
