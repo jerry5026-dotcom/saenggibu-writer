@@ -1334,8 +1334,13 @@ function resetAll() {
 }
 function confirmReset() {
   closeOverlay('resetOverlay');
-  localStorage.removeItem(STORE_KEY);
-  location.reload();
+  S.students = Array.from({length:5}, mkStudent);
+  S.sections.forEach(sec => { sec.entries = {}; });
+  saveStore();
+  renderTabs();
+  renderContent();
+  updateBadge();
+  toast('입력 내용이 초기화되었습니다.', 'info');
 }
 
 // ══════════════════════════════════════════════════
