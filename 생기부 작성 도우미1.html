@@ -582,9 +582,6 @@ function init() {
   if (!S.students.length) {
     S.students = Array.from({length:5}, mkStudent);
   }
-  if (!S.sections.length) {
-    addSection('자율활동', true);
-  }
   if (!S.activeSecId) S.activeSecId = S.sections[0]?.id;
   renderTabs();
   renderContent();
