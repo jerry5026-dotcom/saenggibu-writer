@@ -889,7 +889,7 @@ function renderTabs() {
     tab.innerHTML = `
       <span class="tab-dot ${dotCls}"></span>
       <span class="tab-name" ondblclick="startRename(this,event)" title="더블클릭으로 과목명 변경">${esc(sec.name)}</span>
-      ${getSubjectGroup(sec.name)==='기타'?`<span style="font-size:10px;color:#f59e0b;margin-left:2px" title="과목명 인식 불가 — 정확한 과목명을 입력해주세요">❓</span>`:''}
+      ${getSubjectGroup(sec.name)==='기타'?`<span class="tab-unknown" style="font-size:10px;color:#f59e0b;margin-left:2px" title="과목명 인식 불가 — 정확한 과목명을 입력해주세요">❓</span>`:''}
       <span class="tab-close" title="이 과목 삭제">×</span>`;
     tab.querySelector('.tab-close').onclick = (e) => deleteSection(sec.id, e);
     tab.onclick = (e) => {
@@ -923,9 +923,22 @@ function startRename(el, e) {
       saveStore();
       // 이름 변경 → 교과군 재판별 → 탭 dot 색상 업데이트
       const newDot = getSubjectDot(sec.name);
-      const dotEl = el.closest('.tab').querySelector('.tab-dot');
-      if (dotEl) {
-        dotEl.className = 'tab-dot ' + newDot;
+      const tabEl = el.closest('.tab');
+      const dotEl = tabEl.querySelector('.tab-dot');
+      if (dotEl) dotEl.className = 'tab-dot ' + newDot;
+      // ❓ 인식 실패 표시 갱신
+      const unknownEl = tabEl.querySelector('.tab-unknown');
+      if (getSubjectGroup(sec.name) === '기타') {
+        if (!unknownEl) {
+          const span = document.createElement('span');
+          span.className = 'tab-unknown';
+          span.style.cssText = 'font-size:10px;color:#f59e0b;margin-left:2px';
+          span.title = '과목명 인식 불가 — 정확한 과목명을 입력해주세요';
+          span.textContent = '❓';
+          tabEl.querySelector('.tab-close').before(span);
+        }
+      } else {
+        if (unknownEl) unknownEl.remove();
       }
       renderContent(); // 툴바의 sec-label-badge 색상도 갱신
     }
