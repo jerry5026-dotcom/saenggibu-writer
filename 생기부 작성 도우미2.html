@@ -126,7 +126,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .result-inner{display:flex;flex-direction:column;min-height:130px}
 .result-empty{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
 .result-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:10px;color:#64748b;font-size:13px}
-.result-ta{flex:1;width:100%;min-height:100px;border:none;outline:none;font-size:13px;color:#1e293b;background:transparent;padding:12px 14px;resize:none;line-height:1.75;font-family:inherit}
+.result-ta{flex:1;width:100%;min-height:100px;border:none;outline:none;font-size:13px;color:#1e293b;background:transparent;padding:12px 14px;resize:none;line-height:1.75;font-family:inherit;overflow:hidden}
 .result-ta::placeholder{color:#cbd5e1}
 .result-footer{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-top:1px solid #f1f5f9;gap:8px;flex-wrap:wrap}
 .byte-count{font-size:12px;color:#94a3b8;font-weight:500;display:flex;align-items:center;gap:5px}
@@ -889,6 +889,7 @@ function renderTabs() {
     tab.innerHTML = `
       <span class="tab-dot ${dotCls}"></span>
       <span class="tab-name" ondblclick="startRename(this,event)" title="더블클릭으로 과목명 변경">${esc(sec.name)}</span>
+      ${getSubjectGroup(sec.name)==='기타'?`<span style="font-size:10px;color:#f59e0b;margin-left:2px" title="과목명 인식 불가 — 정확한 과목명을 입력해주세요">❓</span>`:''}
       <span class="tab-close" title="이 과목 삭제">×</span>`;
     tab.querySelector('.tab-close').onclick = (e) => deleteSection(sec.id, e);
     tab.onclick = (e) => {
@@ -989,6 +990,7 @@ function renderRow(student, rowNum, sec) {
     ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0" title="생성 완료"></span>`
     : `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d1d5db;flex-shrink:0" title="미생성"></span>`;
 
+  const histLen=(entry.history||[]).length;
   const resultHTML = hasResult ? `
     <textarea class="result-ta"
       oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)"
@@ -1002,6 +1004,7 @@ function renderRow(student, rowNum, sec) {
       <div class="result-btns">
         <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')" title="복사">📋 복사</button>
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')" title="AI로 수정">✏️ 수정</button>
+        ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
       </div>
     </div>` : `
@@ -1025,6 +1028,11 @@ function renderRow(student, rowNum, sec) {
       </div>
       <div class="result-footer" id="rf-gen-${student.id}-${sec.id}">
         <div style="flex:1"></div>
+        ${getSubjectGroup(sec.name)==='기타'?`
+<div style="margin:0 12px 6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:11.5px;color:#92400e;line-height:1.5">
+  ⚠️ 과목명을 인식하지 못했습니다. 탭 이름에 정확한 과목명을 입력하면 맞춤형 문장이 생성됩니다.<br>
+  <span style="color:#b45309">예) 통합사회1, 생명과학Ⅱ, 미적분, 영어Ⅰ</span>
+</div>`:''}
         <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
@@ -1079,6 +1087,29 @@ function patchEntry(sid, secId, field, val) {
   if (!sec.entries[sid]) sec.entries[sid]={chars:'',result:''};
   sec.entries[sid][field] = val;
   saveStore();
+}
+
+function saveHistory(sid, secId) {
+  const sec = getSection(secId);
+  if (!sec) return;
+  const oldResult = sec.entries[sid]?.result?.trim() || '';
+  if (!oldResult) return;
+  if (!sec.entries[sid].history) sec.entries[sid].history = [];
+  sec.entries[sid].history = [...sec.entries[sid].history.slice(-4), oldResult];
+  saveStore();
+}
+
+function popHistory(sid, secId) {
+  const sec = getSection(secId);
+  const student = S.students.find(x=>x.id===sid);
+  if (!sec || !student) return;
+  const entry = sec.entries[sid];
+  if (!entry?.history?.length) return;
+  const prev = entry.history.pop();
+  entry.result = prev;
+  saveStore();
+  refreshRow(student, sec);
+  toast('이전 버전으로 복원했습니다.', 'info');
 }
 
 function onByteLimitChange(secId, val) {
@@ -1369,6 +1400,7 @@ async function genOne(sid, secId) {
   setRowLoading(sid, secId, true);
   try {
     const result = await callAPI(prompt);
+    saveHistory(sid, secId);
     patchEntry(sid, secId, 'result', result);
     refreshRow(student, sec);
     toast('생성 완료!', 'success');
@@ -1432,6 +1464,7 @@ function refreshRow(student, sec) {
   const ri=document.getElementById(`ri-${student.id}-${sec.id}`);
   if(!ri)return;
   const entry=sec.entries[student.id]||{chars:'',result:''};
+  const histLen=(entry.history||[]).length;
   const {bytes,chars}=countBytes(entry.result);
   const ratio=sec.byteLimit>0?bytes/sec.byteLimit:0;
   const pct=Math.round(Math.min(ratio/1.1,1)*100);
@@ -1451,6 +1484,7 @@ function refreshRow(student, sec) {
       <div class="result-btns">
         <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
+        ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
       </div>
     </div>`;
@@ -1485,6 +1519,7 @@ async function runModify() {
   btn.disabled=true;sp.style.display='inline-block';
   try{
     const result=await callAPI(prompt);
+    saveHistory(modifyTarget.sid,modifyTarget.secId);
     patchEntry(modifyTarget.sid,modifyTarget.secId,'result',result);
     closeOverlay('modifyOverlay');
     refreshRow(student,sec);
