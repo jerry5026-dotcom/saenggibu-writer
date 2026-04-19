@@ -1862,6 +1862,7 @@ function confirmPasteDistribute() {
   _pendingPaste = null;
   const sec = getSection(secId);
   if (!sec) return;
+  ensureEntries(sec);
   const startIdx = S.students.findIndex(s => s.id === sid);
   if (startIdx < 0) return;
   let count = 0;
