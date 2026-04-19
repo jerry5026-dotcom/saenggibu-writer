@@ -122,10 +122,10 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .td-input{padding:0}
 .char-ta{width:100%;min-height:130px;border:none;outline:none;font-size:13px;color:#374151;background:transparent;padding:12px 14px;resize:none;line-height:1.65;font-family:inherit;display:block}
 .char-ta::placeholder{color:#cbd5e1;line-height:1.7}
-.grade-bar{display:flex;align-items:center;gap:4px;padding:6px 14px 4px;border-bottom:1px solid #f1f5f9}
+.grade-bar{display:flex;align-items:center;gap:3px;padding:6px 10px 4px;border-bottom:1px solid #f1f5f9}
 .grade-lbl{font-size:11px;font-weight:700;color:#94a3b8;margin-right:2px;flex-shrink:0}
 .grade-hint{font-size:10.5px;color:#cbd5e1;margin-left:4px;white-space:nowrap;flex-shrink:0}
-.grade-btn{font-size:12px;font-weight:700;padding:2px 8px;border-radius:5px;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;cursor:pointer;transition:all .15s;line-height:1.5;flex-shrink:0}
+.grade-btn{font-size:12px;font-weight:700;padding:2px 6px;border-radius:5px;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;cursor:pointer;transition:all .15s;line-height:1.5;flex-shrink:0}
 .grade-btn:hover{border-color:#94a3b8;color:#475569}
 .grade-btn.ga{border-color:#bfdbfe;color:#2563eb}.grade-btn.ga.sel{background:#2563eb;border-color:#2563eb;color:#fff}
 .grade-btn.gb{border-color:#bbf7d0;color:#16a34a}.grade-btn.gb.sel{background:#16a34a;border-color:#16a34a;color:#fff}
@@ -1031,9 +1031,6 @@ function renderRow(student, rowNum, sec) {
   const isGood = bytes>0 && ratio>=0.7 && ratio<=1.05;
   const isOver = ratio>1.05;
   const barCls = isOver?'over':isGood?'good':'';
-  const statusDot = hasResult
-    ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0" title="생성 완료"></span>`
-    : `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d1d5db;flex-shrink:0" title="미생성"></span>`;
 
   const histLen=(entry.history||[]).length;
   const resultHTML = hasResult ? `
@@ -1088,17 +1085,14 @@ function renderRow(student, rowNum, sec) {
       <div class="row-badge">${esc(student.num) || rowNum}</div>
     </td>
     <td class="td-name">
-      <div style="display:flex;align-items:center;gap:6px">
-        ${statusDot}
-        <input type="text" class="name-inp" value="${esc(student.name)}" placeholder="이름"
-          onchange="patchStudent('${student.id}','name',this.value)">
-      </div>
+      <input type="text" class="name-inp" value="${esc(student.name)}" placeholder="이름"
+        onchange="patchStudent('${student.id}','name',this.value)">
     </td>
     <td class="td-input">
       <div class="grade-bar">
         <span class="grade-lbl">성취도</span>
         ${['A','B','C','D','E'].map((g,i)=>{const cls=['ga','gb','gc','gd','ge'][i];const sel=(entry.grade||'')===g?' sel':'';return `<button class="grade-btn ${cls}${sel}" onclick="toggleGrade('${student.id}','${sec.id}','${g}')">${g}</button>`;}).join('')}
-        <span class="grade-hint">(선택 사항)</span>
+        <span class="grade-hint">(선택)</span>
       </div>
       <textarea class="char-ta"
         placeholder="수업 중 관찰한 학생의 활동·태도·역량 등을 자유롭게 입력하세요.&#10;활동이 여러 개면 줄바꿈으로 구분하세요.&#10;&#10;예) 민주주의 단원에서 선거 제도의 장단점을 비교 분석하여 모둠원에게 설명함. 사회 탐구 보고서를 작성하여 발표함."
