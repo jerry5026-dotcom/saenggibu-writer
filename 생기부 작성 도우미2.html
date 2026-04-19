@@ -1048,15 +1048,21 @@ function renderRow(student, rowNum, sec) {
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')" title="AI로 수정">✏️ 수정</button>
         ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
+        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>` : `
     <div class="result-inner" style="flex:1;display:flex;flex-direction:column">
       <textarea class="result-ta"
         placeholder="✨ 생성하기를 누르거나, AI에서 생성한 문장을 여기에 직접 붙여넣으세요."
-        oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this);showResultFooter(this,'${student.id}','${sec.id}',${sec.byteLimit})"
+        oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)"
         onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
-        onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this);showResultFooter(this,'${student.id}','${sec.id}',${sec.byteLimit})},0)"
+        onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)},0)"
       ></textarea>
+      ${getSubjectGroup(sec.name)==='기타'?`
+<div style="margin:0 12px 6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:11.5px;color:#92400e;line-height:1.5">
+  ⚠️ 과목명을 인식하지 못했습니다. 탭 이름에 정확한 과목명을 입력하면 맞춤형 문장이 생성됩니다.<br>
+  <span style="color:#b45309">예) 통합사회1, 생명과학Ⅱ, 미적분, 영어Ⅰ</span>
+</div>`:''}
       <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
         <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
           <div class="byte-bar"><div class="byte-bar-fill" id="bar-${student.id}-${sec.id}" style="width:0%"></div></div>
@@ -1066,16 +1072,8 @@ function renderRow(student, rowNum, sec) {
           <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
           <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
           <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
+          <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
         </div>
-      </div>
-      <div class="result-footer" id="rf-gen-${student.id}-${sec.id}">
-        <div style="flex:1"></div>
-        ${getSubjectGroup(sec.name)==='기타'?`
-<div style="margin:0 12px 6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:11.5px;color:#92400e;line-height:1.5">
-  ⚠️ 과목명을 인식하지 못했습니다. 탭 이름에 정확한 과목명을 입력하면 맞춤형 문장이 생성됩니다.<br>
-  <span style="color:#b45309">예) 통합사회1, 생명과학Ⅱ, 미적분, 영어Ⅰ</span>
-</div>`:''}
-        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
 
@@ -1191,11 +1189,6 @@ function onResultInput(sid, secId, val, byteLimit) {
   patchEntry(sid, secId, 'result', val);
 }
 
-function showResultFooter(ta, sid, secId, byteLimit) {
-  const rfGen = document.getElementById(`rf-gen-${sid}-${secId}`);
-  if (rfGen) rfGen.style.display = ta.value.trim().length > 0 ? 'none' : 'flex';
-  // 바이트 카운터(rf-*)는 항상 표시
-}
 
 // ══════════════════════════════════════════════════
 // BYTE COUNT (NEIS: 한글 1자 = 3바이트)
@@ -1557,6 +1550,7 @@ function refreshRow(student, sec) {
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
         ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
+        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
   setTimeout(()=>{const ta=ri.querySelector('.result-ta');if(ta)fitHeight(ta);},0);

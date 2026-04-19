@@ -877,9 +877,6 @@ function renderRow(student, rowNum, sec) {
   const isGood = bytes>0 && ratio>=0.7 && ratio<=1.05;
   const isOver = ratio>1.05;
   const barCls = isOver?'over':isGood?'good':'';
-  const statusDot = hasResult
-    ? `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0" title="생성 완료"></span>`
-    : `<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d1d5db;flex-shrink:0" title="미생성"></span>`;
 
   const histLen=(entry.history||[]).length;
   const resultHTML = hasResult ? `
@@ -897,14 +894,15 @@ function renderRow(student, rowNum, sec) {
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')" title="AI로 수정">✏️ 수정</button>
         ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
+        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>` : `
     <div class="result-inner" style="flex:1;display:flex;flex-direction:column">
       <textarea class="result-ta"
         placeholder="✨ 생성하기를 누르거나, AI에서 생성한 문장을 여기에 직접 붙여넣으세요."
-        oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this);showResultFooter(this,'${student.id}','${sec.id}',${sec.byteLimit})"
+        oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)"
         onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
-        onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this);showResultFooter(this,'${student.id}','${sec.id}',${sec.byteLimit})},0)"
+        onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)},0)"
       ></textarea>
       <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
         <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
@@ -915,11 +913,8 @@ function renderRow(student, rowNum, sec) {
           <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
           <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
           <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
+          <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
         </div>
-      </div>
-      <div class="result-footer" id="rf-gen-${student.id}-${sec.id}">
-        <div style="flex:1"></div>
-        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
 
@@ -929,11 +924,8 @@ function renderRow(student, rowNum, sec) {
       <div class="row-badge">${esc(student.num) || rowNum}</div>
     </td>
     <td class="td-name">
-      <div style="display:flex;align-items:center;gap:6px">
-        ${statusDot}
-        <input type="text" class="name-inp" value="${esc(student.name)}" placeholder="이름"
-          onchange="patchStudent('${student.id}','name',this.value)">
-      </div>
+      <input type="text" class="name-inp" value="${esc(student.name)}" placeholder="이름"
+        onchange="patchStudent('${student.id}','name',this.value)">
     </td>
     <td class="td-input">
       <textarea class="char-ta"
@@ -1017,12 +1009,6 @@ function onResultInput(sid, secId, val, byteLimit) {
   patchEntry(sid, secId, 'result', val);
 }
 
-// 붙여넣기·직접 입력 시 푸터 전환 (생성하기 버튼 → 바이트 카운터+액션 버튼)
-function showResultFooter(ta, sid, secId, byteLimit) {
-  const rfGen = document.getElementById(`rf-gen-${sid}-${secId}`);
-  if (rfGen) rfGen.style.display = ta.value.trim().length > 0 ? 'none' : 'flex';
-  // 바이트 카운터(rf-*)는 항상 표시
-}
 
 // ══════════════════════════════════════════════════
 // BYTE COUNT (NEIS: Korean=2B, others=1B)
@@ -1305,6 +1291,7 @@ function refreshRow(student, sec) {
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
         ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
+        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
   setTimeout(()=>{const ta=ri.querySelector('.result-ta');if(ta)fitHeight(ta);},0);
