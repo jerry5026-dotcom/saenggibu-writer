@@ -122,6 +122,16 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .td-input{padding:0}
 .char-ta{width:100%;min-height:130px;border:none;outline:none;font-size:13px;color:#374151;background:transparent;padding:12px 14px;resize:none;line-height:1.65;font-family:inherit;display:block}
 .char-ta::placeholder{color:#cbd5e1;line-height:1.7}
+.grade-bar{display:flex;align-items:center;gap:4px;padding:6px 14px 4px;border-bottom:1px solid #f1f5f9}
+.grade-lbl{font-size:11px;font-weight:700;color:#94a3b8;margin-right:2px;flex-shrink:0}
+.grade-hint{font-size:10.5px;color:#cbd5e1;margin-left:4px}
+.grade-btn{font-size:12px;font-weight:700;padding:2px 8px;border-radius:5px;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;cursor:pointer;transition:all .15s;line-height:1.5;flex-shrink:0}
+.grade-btn:hover{border-color:#94a3b8;color:#475569}
+.grade-btn.ga{border-color:#bfdbfe;color:#2563eb}.grade-btn.ga.sel{background:#2563eb;border-color:#2563eb;color:#fff}
+.grade-btn.gb{border-color:#bbf7d0;color:#16a34a}.grade-btn.gb.sel{background:#16a34a;border-color:#16a34a;color:#fff}
+.grade-btn.gc{border-color:#fde68a;color:#d97706}.grade-btn.gc.sel{background:#d97706;border-color:#d97706;color:#fff}
+.grade-btn.gd{border-color:#fca5a5;color:#dc2626}.grade-btn.gd.sel{background:#dc2626;border-color:#dc2626;color:#fff}
+.grade-btn.ge{border-color:#cbd5e1;color:#64748b}.grade-btn.ge.sel{background:#64748b;border-color:#64748b;color:#fff}
 .td-result{padding:0;border-left:2px solid #f1f5f9}
 .result-inner{display:flex;flex-direction:column;min-height:130px}
 .result-empty{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -1085,6 +1095,11 @@ function renderRow(student, rowNum, sec) {
       </div>
     </td>
     <td class="td-input">
+      <div class="grade-bar">
+        <span class="grade-lbl">성취도</span>
+        ${['A','B','C','D','E'].map((g,i)=>{const cls=['ga','gb','gc','gd','ge'][i];const sel=(entry.grade||'')===g?' sel':'';return `<button class="grade-btn ${cls}${sel}" onclick="toggleGrade('${student.id}','${sec.id}','${g}')">${g}</button>`;}).join('')}
+        <span class="grade-hint">(선택 사항)</span>
+      </div>
       <textarea class="char-ta"
         placeholder="수업 중 관찰한 학생의 활동·태도·역량 등을 자유롭게 입력하세요.&#10;활동이 여러 개면 줄바꿈으로 구분하세요.&#10;&#10;예) 민주주의 단원에서 선거 제도의 장단점을 비교 분석하여 모둠원에게 설명함. 사회 탐구 보고서를 작성하여 발표함."
         oninput="fitHeight(this)"
@@ -1122,6 +1137,22 @@ function patchEntry(sid, secId, field, val) {
   if (!sec.entries[sid]) sec.entries[sid]={chars:'',result:''};
   sec.entries[sid][field] = val;
   saveStore();
+}
+
+function toggleGrade(sid, secId, grade) {
+  const sec = getSection(secId);
+  if (!sec) return;
+  if (!sec.entries[sid]) sec.entries[sid] = {chars:'', result:''};
+  const cur = sec.entries[sid].grade || '';
+  const next = cur === grade ? '' : grade; // 같은 등급 재클릭 시 해제
+  sec.entries[sid].grade = next;
+  saveStore();
+  // 전체 재렌더 없이 버튼 상태만 갱신
+  const row = document.getElementById(`row-${sid}-${secId}`);
+  if (!row) return;
+  row.querySelectorAll('.grade-btn').forEach(btn => {
+    btn.classList.toggle('sel', btn.textContent.trim() === next);
+  });
 }
 
 function saveHistory(sid, secId) {
@@ -1287,14 +1318,25 @@ function buildPrompt(student, sec, modInstr) {
   · 수업 활동에서 드러난 학생 고유의 역량과 탐구 과정을 구체적으로 서술
   · 활동의 논리적 흐름, 전공·진로와의 연계성, 문제해결력이 드러나도록 서술`;
 
+  const gradeGuides = {
+    'A': 'A등급(최상위): 심화 개념까지 자기주도적으로 탐구·분석하는 모습을 강조한다. "분석함", "도출함", "설계함", "주도함", "체계화함" 등 능동적·고차원 동사를 활용하며, 창의적 적용·융합적 사고·탐구의 깊이가 문장 전체에 드러나도록 서술한다.',
+    'B': 'B등급(상위): 높은 이해도를 바탕으로 적극적으로 탐구하고 참여하는 모습을 표현한다. "탐구함", "적용함", "제안함", "발표함", "조율함" 등 능동적 동사를 활용하며, 자기주도성과 성실한 탐구 과정이 드러나도록 서술한다.',
+    'C': 'C등급(중위): 기초 개념을 이해하고 성실히 수업에 참여하는 모습을 중심으로 서술한다. "이해함", "참여함", "수행함", "정리함", "습득함" 등 안정적 동사를 활용하며, 꾸준한 노력과 성실한 참여 과정이 드러나도록 서술한다.',
+    'D': 'D등급(하위-중위): 노력하며 기본 개념을 익혀가는 과정과 성장 가능성을 강조한다. "노력함", "익힘", "개선함", "보완함", "시도함" 등 과정 중심 동사를 활용하며, 작은 성취와 변화를 긍정적으로 서술한다.',
+    'E': 'E등급(하위): 수업에 참여하며 기초를 다져나가는 모습과 노력을 긍정적으로 서술한다. "참여함", "경험함", "시도함", "접함" 등 기초 참여 동사를 활용하며, 긍정적 프레이밍으로 잠재력과 성실한 노력을 강조한다.',
+  };
+  const gradeSection = entry.grade ? `\n# [절대 준수 규칙 0: 성취도 등급 반영 — 최우선 적용]\n이 학생의 이 과목 성취도 등급은 "${entry.grade}등급"입니다. 아래 기준에 따라 어휘 수준·서술 깊이·표현 방식을 조정하며, 다른 모든 규칙보다 이 규칙을 우선 적용하시오.\n${gradeGuides[entry.grade]}` : '';
+
   return `# [역할 부여]
 당신은 대한민국 최고의 고등학교 교과 담당 교사이자 입학 사정관을 사로잡는 학교생활기록부 세부능력 및 특기사항(세특) 작성 전문가입니다. 교육부의 기재 요령을 철저히 준수하며, 수업 관찰 데이터를 바탕으로 학생의 교과 역량을 사실적이고 구조적으로 서술합니다.
 
 # [입력 데이터]
 - 학생 이름: ${student.name||'(미입력)'} (※ 내부 판단용으로만 사용하며, 출력 문장에는 절대 포함하지 말 것)
 - 작성 과목: ${sec.name}
+- 성취도 등급: ${entry.grade ? entry.grade+'등급 (A 최상위 ~ E 최하위)' : '미입력'}
 - 수업 관찰 내용:
 ${entry.chars||'(내용 없음)'}${modInstr ? `\n\n# [수정 지시사항]\n${modInstr}\n\n# [기존 문장]\n${entry.result}` : ''}
+${gradeSection}
 
 # [세특 전용 절대 준수 규칙]
 1. 과목명을 문장에 포함하지 않는다. (NEIS에 과목명이 자동 표시되므로)
@@ -1998,6 +2040,8 @@ function _doFileUpload(file) {
         const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
         if (rows.length < 2) return;
 
+        const header = rows[0] || [];
+        const hasGradeCol = String(header[2]||'').trim() === '성취도';
         const dataRows = rows.slice(1);
 
         if (si === 0) {
@@ -2017,10 +2061,19 @@ function _doFileUpload(file) {
         dataRows.forEach((row, i) => {
           const st = newStudents[i];
           if (!st) return;
-          sec.entries[st.id] = {
-            chars:  String(row[2]||'').trim(),
-            result: String(row[3]||'').trim()
-          };
+          if (hasGradeCol) {
+            const g = String(row[2]||'').trim().toUpperCase();
+            sec.entries[st.id] = {
+              grade:  ['A','B','C','D','E'].includes(g) ? g : '',
+              chars:  String(row[3]||'').trim(),
+              result: String(row[4]||'').trim()
+            };
+          } else {
+            sec.entries[st.id] = {
+              chars:  String(row[2]||'').trim(),
+              result: String(row[3]||'').trim()
+            };
+          }
         });
 
         newSections.push(sec);
@@ -2055,15 +2108,15 @@ function downloadXLSX() {
   const wb = XLSX.utils.book_new();
 
   S.sections.forEach(sec => {
-    const aoa = [['번호', '이름', '수업 관찰 내용', '생성된 세특 문장']];
+    const aoa = [['번호', '이름', '성취도', '수업 관찰 내용', '생성된 세특 문장']];
 
     S.students.forEach(st => {
-      const entry = sec.entries[st.id] || {chars:'', result:''};
-      aoa.push([st.num, st.name, entry.chars, entry.result]);
+      const entry = sec.entries[st.id] || {chars:'', result:'', grade:''};
+      aoa.push([st.num, st.name, entry.grade||'', entry.chars, entry.result]);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
-    ws['!cols'] = [{wch:8}, {wch:10}, {wch:45}, {wch:55}];
+    ws['!cols'] = [{wch:8}, {wch:10}, {wch:8}, {wch:45}, {wch:55}];
     ws['!rows'] = [{hpt:18}];
 
     const sheetName = sec.name.slice(0, 31);
