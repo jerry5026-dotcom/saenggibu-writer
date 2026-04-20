@@ -1047,7 +1047,6 @@ function renderRow(student, rowNum, sec) {
         <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')" title="복사">📋 복사</button>
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')" title="AI로 수정">✏️ 수정</button>
         ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
-        <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
         <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>` : `
@@ -1071,7 +1070,6 @@ function renderRow(student, rowNum, sec) {
         <div class="result-btns">
           <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
           <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
-          <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
           <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
         </div>
       </div>
@@ -1549,7 +1547,6 @@ function refreshRow(student, sec) {
         <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
         ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
-        <button class="btn btn-outline btn-sm" onclick="genOne('${student.id}','${sec.id}')">🔄 재생성</button>
         <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
