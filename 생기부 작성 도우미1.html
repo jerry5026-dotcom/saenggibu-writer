@@ -114,9 +114,17 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .td-name{vertical-align:middle!important;text-align:center;padding:10px 6px}
 .name-inp{width:100%;border:none;outline:none;font-size:13px;color:#374151;background:transparent;text-align:center;font-weight:500;font-family:inherit}
 .name-inp::placeholder{color:#cbd5e1}
-.td-input{padding:0}
+.td-input{padding:0 0 40px 0;position:relative}
 .char-ta{width:100%;min-height:130px;border:none;outline:none;font-size:13px;color:#374151;background:transparent;padding:12px 14px;resize:none;line-height:1.65;font-family:inherit;display:block}
 .char-ta::placeholder{color:#cbd5e1;line-height:1.7}
+.level-bar{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;justify-content:flex-end;gap:3px;padding:7px 10px}
+.level-lbl{font-size:11px;font-weight:700;color:#94a3b8;margin-right:0;flex-shrink:0}
+.level-hint{font-size:10.5px;color:#cbd5e1;margin-left:1px;margin-right:8px;white-space:nowrap;flex-shrink:0}
+.level-btn{font-size:12px;font-weight:700;padding:2px 8px;border-radius:5px;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;cursor:pointer;transition:all .15s;line-height:1.5;flex-shrink:0}
+.level-btn:hover{border-color:#94a3b8;color:#475569}
+.level-btn.lh{border-color:#bfdbfe;color:#2563eb}.level-btn.lh.sel{background:#2563eb;border-color:#2563eb;color:#fff}
+.level-btn.lm{border-color:#bbf7d0;color:#16a34a}.level-btn.lm.sel{background:#16a34a;border-color:#16a34a;color:#fff}
+.level-btn.ll{border-color:#fde68a;color:#d97706}.level-btn.ll.sel{background:#d97706;border-color:#d97706;color:#fff}
 .td-result{padding:0 0 40px 0;border-left:2px solid #f1f5f9;position:relative}
 .result-inner{display:flex;flex-direction:column;min-height:130px}
 .result-empty{flex:1;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -894,7 +902,7 @@ function renderContent() {
 }
 
 function renderRow(student, rowNum, sec) {
-  const entry = sec.entries[student.id] || {chars:'', result:''};
+  const entry = sec.entries[student.id] || {chars:'', result:'', level:''};
   const hasResult = entry.result.trim().length > 0;
   const {bytes, chars} = countBytes(entry.result);
   const ratio = sec.byteLimit > 0 ? bytes / sec.byteLimit : 0;
@@ -955,6 +963,11 @@ function renderRow(student, rowNum, sec) {
         onchange="patchEntry('${student.id}','${sec.id}','chars',this.value)"
         onpaste="handleCharTaPaste(event,'${student.id}','${sec.id}')"
       >${esc(entry.chars)}</textarea>
+      <div class="level-bar">
+        <span class="level-lbl">수준</span>
+        <span class="level-hint">(선택)</span>
+        ${[['상','lh'],['중','lm'],['하','ll']].map(([lv,cls])=>`<button class="level-btn ${cls}${(entry.level||'')===lv?' sel':''}" onclick="toggleLevel('${student.id}','${sec.id}','${lv}')">${lv}</button>`).join('')}
+      </div>
     </td>
     <td class="td-result">
       <div class="result-inner" id="ri-${student.id}-${sec.id}">${resultHTML}</div>
@@ -983,9 +996,25 @@ function patchStudent(sid, field, val) {
 function patchEntry(sid, secId, field, val) {
   const sec = getSection(secId);
   if (!sec) return;
-  if (!sec.entries[sid]) sec.entries[sid]={chars:'',result:''};
+  if (!sec.entries[sid]) sec.entries[sid]={chars:'',result:'',level:''};
   sec.entries[sid][field] = val;
   saveStore();
+}
+
+function toggleLevel(sid, secId, level) {
+  const sec = getSection(secId);
+  if (!sec) return;
+  if (!sec.entries[sid]) sec.entries[sid] = {chars:'', result:'', level:''};
+  const cur = sec.entries[sid].level || '';
+  const next = cur === level ? '' : level; // 같은 수준 재클릭 시 해제
+  sec.entries[sid].level = next;
+  saveStore();
+  // 전체 재렌더 없이 버튼 상태만 갱신
+  const row = document.getElementById(`row-${sid}-${secId}`);
+  if (!row) return;
+  row.querySelectorAll('.level-btn').forEach(btn => {
+    btn.classList.toggle('sel', btn.textContent.trim() === next);
+  });
 }
 
 function saveHistory(sid, secId) {
@@ -1077,10 +1106,30 @@ function countBytes(str) {
 // PROMPT
 // ══════════════════════════════════════════════════
 function buildPrompt(student, sec, modInstr) {
-  const entry = sec.entries[student.id] || {chars:'', result:''};
+  const entry = sec.entries[student.id] || {chars:'', result:'', level:''};
   // UTF-8 기준: 한글 1자 = 3바이트 → 목표 글자 수 = byteLimit ÷ 3
   const maxC = Math.round(sec.byteLimit / 3);
   const minC = Math.round(maxC * 0.9);   // 목표의 90% ~ 100% 범위
+
+  const levelGuides = {
+    '상': `이 학생은 상위권 학생입니다. 다음 지침에 따라 작성하세요.
+- '탁월한', '심화된', '주도적으로', '능동적으로', '창의적으로' 등 높은 성취를 나타내는 어휘를 사용하세요.
+- 단순 이해를 넘어 응용·분석·종합하는 능력을 부각하세요.
+- 학습 내용을 스스로 확장하거나 다른 영역과 연계하는 모습을 표현하세요.
+- 학습 결과뿐 아니라 과정에서의 탐구 정신과 주도성을 강조하세요.`,
+    '중': `이 학생은 중위권 학생입니다. 다음 지침에 따라 작성하세요.
+- '성실히', '꾸준히', '적극적으로', '노력하여', '이해하고 적용하는' 등의 표현을 사용하세요.
+- 기본 개념을 이해하고 주어진 과제를 성실히 수행하는 모습을 중심으로 작성하세요.
+- 참여 태도의 긍정적인 면과 점진적인 성장 과정을 표현하세요.`,
+    '하': `이 학생은 하위권 학생입니다. 다음 지침에 따라 작성하세요.
+- 반드시 긍정적이고 격려하는 어조를 유지하세요.
+- '기초를 다지며', '차근차근 발전하는', '노력하는 자세를 보이는', '성장 가능성을 보여주는' 등의 표현을 사용하세요.
+- 부족한 점보다 노력하는 과정·태도·작은 성취를 중심으로 작성하세요.
+- 앞으로의 발전 가능성을 긍정적으로 서술하세요.
+- '부족하다', '못한다', '어렵다' 등 부정적 표현은 절대 사용하지 마세요.`
+  };
+  const levelSection = entry.level ? `\n# [절대 준수 규칙 0: 학생 수준 반영 — 최우선 적용]\n${levelGuides[entry.level]}` : '';
+
   const secGuide = {
     '자율활동': `- 자율활동: 학교·학급 단위 활동에서의 자발적 참여와 공동체 기여를 중심으로 서술할 것.
   · 학생자치, 학급회의, 행사 기획·운영 등 역할과 기여가 드러나도록 서술
@@ -1110,11 +1159,12 @@ function buildPrompt(student, sec, modInstr) {
   };
   const isHb = sec.type === '행동특성 및 종합의견';
   return `# [역할 부여]
-당신은 대한민국 최고의 고등학교 교사이자 입학 사정관을 사로잡는 학교생활기록부 작성 전문가입니다. 교육부의 기재 요령을 철저히 준수하며, 주어진 관찰 데이터를 바탕으로 학생의 역량을 사실적이고 구조적으로 서술합니다.
+당신은 대한민국 최고의 고등학교 교사이자 입학 사정관을 사로잡는 학교생활기록부 작성 전문가입니다. 교육부의 기재 요령을 철저히 준수하며, 주어진 관찰 데이터를 바탕으로 학생의 역량을 사실적이고 구조적으로 서술합니다.${levelSection}
 
 # [입력 데이터]
 - 학생 이름: ${student.name||'(미입력)'} (※ 내부 판단용으로만 사용하며, 출력 문장에는 절대 포함하지 말 것)
 - 작성 영역: ${sec.type}
+- 학생 수준: ${entry.level ? entry.level+'(상위권/중위권/하위권 중 '+{'상':'상위권','중':'중위권','하':'하위권'}[entry.level]+')' : '미설정'}
 - 활동 및 관찰 내용:
 ${entry.chars||'(내용 없음)'}${modInstr ? `\n\n# [수정 지시사항]\n${modInstr}\n\n# [기존 문장]\n${entry.result}` : ''}
 
@@ -1753,7 +1803,7 @@ function _doStudentListUpload(file) {
         newStudents.forEach((st, i) => {
           const byName = st.name ? oldStudents.find(o => o.name === st.name) : null;
           const oldSt = byName || oldStudents[i];
-          newEntries[st.id] = (oldSt && sec.entries[oldSt.id]) ? sec.entries[oldSt.id] : {chars:'', result:''};
+          newEntries[st.id] = (oldSt && sec.entries[oldSt.id]) ? sec.entries[oldSt.id] : {chars:'', result:'', level:''};
         });
         sec.entries = newEntries;
       });
@@ -1813,7 +1863,8 @@ function _doFileUpload(file) {
           if (!st) return;
           sec.entries[st.id] = {
             chars:  String(row[2]||'').trim(),
-            result: String(row[3]||'').trim()
+            result: String(row[3]||'').trim(),
+            level:  ['상','중','하'].includes(String(row[4]||'').trim()) ? String(row[4]).trim() : ''
           };
         });
 
@@ -1850,17 +1901,17 @@ function downloadXLSX() {
 
   S.sections.forEach(sec => {
     // 헤더
-    const aoa = [['번호', '이름', '학생 특성 (활동 내용)', '생성된 문장']];
+    const aoa = [['번호', '이름', '학생 특성 (활동 내용)', '생성된 문장', '수준']];
 
     S.students.forEach(st => {
-      const entry = sec.entries[st.id] || {chars:'', result:''};
-      aoa.push([st.num, st.name, entry.chars, entry.result]);
+      const entry = sec.entries[st.id] || {chars:'', result:'', level:''};
+      aoa.push([st.num, st.name, entry.chars, entry.result, entry.level||'']);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
 
     // 열 너비 설정
-    ws['!cols'] = [{wch:8}, {wch:10}, {wch:45}, {wch:55}];
+    ws['!cols'] = [{wch:8}, {wch:10}, {wch:45}, {wch:55}, {wch:8}];
 
     // 헤더 행 높이
     ws['!rows'] = [{hpt:18}];
