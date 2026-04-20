@@ -798,13 +798,13 @@ function mkStudent() { return {id:uid(), num:'', name:''}; }
 
 function mkSection(name) {
   const entries = {};
-  S.students.forEach(s => { entries[s.id] = {chars:'', result:''}; });
+  S.students.forEach(s => { entries[s.id] = {chars:'', result:'', grade:'', history:[]}; });
   return { id:uid(), name: name||'새 과목', byteLimit:1500, byteCustom:false, entries };
 }
 
 function ensureEntries(sec) {
   S.students.forEach(s => {
-    if (!sec.entries[s.id]) sec.entries[s.id] = {chars:'', result:''};
+    if (!sec.entries[s.id]) sec.entries[s.id] = {chars:'', result:'', grade:'', history:[]};
   });
 }
 
@@ -918,7 +918,7 @@ function confirmDeleteSection() {
 function addStudent() {
   const st = mkStudent();
   S.students.push(st);
-  S.sections.forEach(sec => { sec.entries[st.id] = {chars:'', result:''}; });
+  S.sections.forEach(sec => { sec.entries[st.id] = {chars:'', result:'', grade:'', history:[]}; });
   saveStore(); renderContent();
   setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:'smooth'}), 60);
 }
@@ -1049,7 +1049,7 @@ function renderContent() {
 }
 
 function renderRow(student, rowNum, sec) {
-  const entry = sec.entries[student.id] || {chars:'', result:''};
+  const entry = sec.entries[student.id] || {chars:'', result:'', grade:'', history:[]};
   const hasResult = entry.result.trim().length > 0;
   const {bytes, chars} = countBytes(entry.result);
   const ratio = sec.byteLimit > 0 ? bytes / sec.byteLimit : 0;
@@ -1150,7 +1150,7 @@ function patchStudent(sid, field, val) {
 function patchEntry(sid, secId, field, val) {
   const sec = getSection(secId);
   if (!sec) return;
-  if (!sec.entries[sid]) sec.entries[sid]={chars:'',result:''};
+  if (!sec.entries[sid]) sec.entries[sid]={chars:'',result:'',grade:'',history:[]};
   sec.entries[sid][field] = val;
   saveStore();
 }
@@ -1158,7 +1158,7 @@ function patchEntry(sid, secId, field, val) {
 function toggleGrade(sid, secId, grade) {
   const sec = getSection(secId);
   if (!sec) return;
-  if (!sec.entries[sid]) sec.entries[sid] = {chars:'', result:''};
+  if (!sec.entries[sid]) sec.entries[sid] = {chars:'', result:'', grade:'', history:[]};
   const cur = sec.entries[sid].grade || '';
   const next = cur === grade ? '' : grade; // 같은 등급 재클릭 시 해제
   sec.entries[sid].grade = next;
@@ -1257,7 +1257,7 @@ function countBytes(str) {
 // PROMPT – 세특 전용
 // ══════════════════════════════════════════════════
 function buildPrompt(student, sec, modInstr) {
-  const entry = sec.entries[student.id] || {chars:'', result:''};
+  const entry = sec.entries[student.id] || {chars:'', result:'', grade:'', history:[]};
   const maxC = Math.round(sec.byteLimit / 3);
   const minC = Math.round(maxC * 0.9);
   const group = getSubjectGroup(sec.name);
@@ -1975,7 +1975,7 @@ function confirmPasteDistribute() {
   cleanLines.forEach((line, i) => {
     const st = S.students[startIdx + i];
     if (!st) return;
-    if (!sec.entries[st.id]) sec.entries[st.id] = {chars:'', result:''};
+    if (!sec.entries[st.id]) sec.entries[st.id] = {chars:'', result:'', grade:'', history:[]};
     sec.entries[st.id].chars = line;
     count++;
   });
@@ -1991,7 +1991,7 @@ function confirmPasteSingle() {
   _pendingPaste = null;
   const sec = getSection(secId);
   if (!sec) return;
-  if (!sec.entries[sid]) sec.entries[sid] = {chars:'', result:''};
+  if (!sec.entries[sid]) sec.entries[sid] = {chars:'', result:'', grade:'', history:[]};
   sec.entries[sid].chars = rawText.replace(/\r\n/g,'\n').trimEnd();
   saveStore();
   renderContent();
@@ -2067,7 +2067,7 @@ function _doStudentListUpload(file) {
         newStudents.forEach((st, i) => {
           const byName = st.name ? oldStudents.find(o => o.name === st.name) : null;
           const oldSt = byName || oldStudents[i];
-          newEntries[st.id] = (oldSt && sec.entries[oldSt.id]) ? sec.entries[oldSt.id] : {chars:'', result:'', grade:''};
+          newEntries[st.id] = (oldSt && sec.entries[oldSt.id]) ? sec.entries[oldSt.id] : {chars:'', result:'', grade:'', history:[]};
         });
         sec.entries = newEntries;
       });
@@ -2129,14 +2129,17 @@ function _doFileUpload(file) {
           if (hasGradeCol) {
             const g = String(row[2]||'').trim().toUpperCase();
             sec.entries[st.id] = {
-              grade:  ['A','B','C','D','E'].includes(g) ? g : '',
-              chars:  String(row[3]||'').trim(),
-              result: String(row[4]||'').trim()
+              grade:   ['A','B','C','D','E'].includes(g) ? g : '',
+              chars:   String(row[3]||'').trim(),
+              result:  String(row[4]||'').trim(),
+              history: []
             };
           } else {
             sec.entries[st.id] = {
-              chars:  String(row[2]||'').trim(),
-              result: String(row[3]||'').trim()
+              grade:   '',
+              chars:   String(row[2]||'').trim(),
+              result:  String(row[3]||'').trim(),
+              history: []
             };
           }
         });
@@ -2176,7 +2179,7 @@ function downloadXLSX() {
     const aoa = [['번호', '이름', '성취도', '수업 관찰 내용', '생성된 세특 문장']];
 
     S.students.forEach(st => {
-      const entry = sec.entries[st.id] || {chars:'', result:'', grade:''};
+      const entry = sec.entries[st.id] || {chars:'', result:'', grade:'', history:[]};
       aoa.push([st.num, st.name, entry.grade||'', entry.chars, entry.result]);
     });
 
