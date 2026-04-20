@@ -1862,9 +1862,9 @@ function _doFileUpload(file) {
           const st = newStudents[i];
           if (!st) return;
           sec.entries[st.id] = {
-            chars:   String(row[2]||'').trim(),
-            result:  String(row[3]||'').trim(),
-            level:   ['상','중','하'].includes(String(row[4]||'').trim()) ? String(row[4]).trim() : '',
+            level:   ['상','중','하'].includes(String(row[2]||'').trim()) ? String(row[2]).trim() : '',
+            chars:   String(row[3]||'').trim(),
+            result:  String(row[4]||'').trim(),
             history: []
           };
         });
@@ -1902,17 +1902,17 @@ function downloadXLSX() {
 
   S.sections.forEach(sec => {
     // 헤더
-    const aoa = [['번호', '이름', '학생 특성 (활동 내용)', '생성된 문장', '수준']];
+    const aoa = [['번호', '이름', '수준', '학생 특성 (활동 내용)', '생성된 문장']];
 
     S.students.forEach(st => {
-      const entry = sec.entries[st.id] || {chars:'', result:'', level:''};
-      aoa.push([st.num, st.name, entry.chars, entry.result, entry.level||'']);
+      const entry = sec.entries[st.id] || {chars:'', result:'', level:'', history:[]};
+      aoa.push([st.num, st.name, entry.level||'', entry.chars, entry.result]);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(aoa);
 
     // 열 너비 설정
-    ws['!cols'] = [{wch:8}, {wch:10}, {wch:45}, {wch:55}, {wch:8}];
+    ws['!cols'] = [{wch:8}, {wch:10}, {wch:8}, {wch:45}, {wch:55}];
 
     // 헤더 행 높이
     ws['!rows'] = [{hpt:18}];
