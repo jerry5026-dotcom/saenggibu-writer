@@ -1088,8 +1088,8 @@ function renderRow(student, rowNum, sec) {
     <td class="td-input">
       <div class="grade-bar">
         <span class="grade-lbl">성취도</span>
-        ${['A','B','C','D','E'].map((g,i)=>{const cls=['ga','gb','gc','gd','ge'][i];const sel=(entry.grade||'')===g?' sel':'';return `<button class="grade-btn ${cls}${sel}" onclick="toggleGrade('${student.id}','${sec.id}','${g}')">${g}</button>`;}).join('')}
         <span class="grade-hint">(선택)</span>
+        ${['A','B','C','D','E'].map((g,i)=>{const cls=['ga','gb','gc','gd','ge'][i];const sel=(entry.grade||'')===g?' sel':'';return `<button class="grade-btn ${cls}${sel}" onclick="toggleGrade('${student.id}','${sec.id}','${g}')">${g}</button>`;}).join('')}
       </div>
       <textarea class="char-ta"
         placeholder="수업 중 관찰한 학생의 활동·태도·역량 등을 자유롭게 입력하세요.&#10;활동이 여러 개면 줄바꿈으로 구분하세요.&#10;&#10;예) 민주주의 단원에서 선거 제도의 장단점을 비교 분석하여 모둠원에게 설명함. 사회 탐구 보고서를 작성하여 발표함."
