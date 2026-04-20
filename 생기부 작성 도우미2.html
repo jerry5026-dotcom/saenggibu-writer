@@ -1054,8 +1054,8 @@ function renderRow(student, rowNum, sec) {
   const {bytes, chars} = countBytes(entry.result);
   const ratio = sec.byteLimit > 0 ? bytes / sec.byteLimit : 0;
   const pct = Math.round(Math.min(ratio/1.1,1)*100);
-  const isGood = bytes>0 && ratio>=0.7 && ratio<=1.05;
-  const isOver = ratio>1.05;
+  const isGood = bytes>0 && ratio>=0.7 && ratio<=1.0;
+  const isOver = ratio>1.0;
   const barCls = isOver?'over':isGood?'good':'';
 
   const histLen=(entry.history||[]).length;
@@ -1232,8 +1232,8 @@ function onResultInput(sid, secId, val, byteLimit) {
   const {bytes, chars} = countBytes(val);
   const ratio = byteLimit>0 ? bytes/byteLimit : 0;
   const pct = Math.round(Math.min(ratio/1.1,1)*100);
-  const isGood = bytes>0 && ratio>=0.7 && ratio<=1.05;
-  const isOver = ratio>1.05;
+  const isGood = bytes>0 && ratio>=0.7 && ratio<=1.0;
+  const isOver = ratio>1.0;
   const barCls = isOver?'over':isGood?'good':'';
   const cnt = document.getElementById(`cnt-${sid}-${secId}`);
   const bar = document.getElementById(`bar-${sid}-${secId}`);
@@ -1599,8 +1599,8 @@ function refreshRow(student, sec) {
   const {bytes,chars}=countBytes(entry.result);
   const ratio=sec.byteLimit>0?bytes/sec.byteLimit:0;
   const pct=Math.round(Math.min(ratio/1.1,1)*100);
-  const isGood=bytes>0&&ratio>=0.7&&ratio<=1.05;
-  const isOver=ratio>1.05;
+  const isGood=bytes>0&&ratio>=0.7&&ratio<=1.0;
+  const isOver=ratio>1.0;
   const barCls=isOver?'over':isGood?'good':'';
   ri.innerHTML=`
     <textarea class="result-ta"
