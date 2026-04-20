@@ -1330,7 +1330,7 @@ async function genOne(sid, secId) {
   const sec = getSection(secId);
   const student = S.students.find(x=>x.id===sid);
   if (!sec || !student) return;
-  const entry = sec.entries[sid] || {chars:'',result:''};
+  const entry = sec.entries[sid] || {chars:'',result:'',level:'',history:[]};
   if (!entry.chars.trim()) { toast('학생 특성 내용을 먼저 입력해주세요.', 'error'); return; }
   const prompt = buildPrompt(student, sec);
   if (!S.api.key) {
@@ -1367,6 +1367,7 @@ async function generateAll(secId) {
     setRowLoading(st.id,secId,true);
     try{
       const result=await callAPI(buildPrompt(st,sec));
+      saveHistory(st.id,secId);
       patchEntry(st.id,secId,'result',result);
       refreshRow(st,sec);
     }catch(err){
@@ -1405,7 +1406,7 @@ function refreshRow(student, sec) {
   row.classList.remove('loading');
   const ri=document.getElementById(`ri-${student.id}-${sec.id}`);
   if(!ri)return;
-  const entry=sec.entries[student.id]||{chars:'',result:''};
+  const entry=sec.entries[student.id]||{chars:'',result:'',level:'',history:[]};
   const histLen=(entry.history||[]).length;
   const {bytes,chars}=countBytes(entry.result);
   const ratio=sec.byteLimit>0?bytes/sec.byteLimit:0;
