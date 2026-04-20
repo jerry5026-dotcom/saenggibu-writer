@@ -897,23 +897,21 @@ function renderRow(student, rowNum, sec) {
         <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>` : `
-    <div class="result-inner" style="flex:1;display:flex;flex-direction:column">
-      <textarea class="result-ta"
-        placeholder="✨ 생성하기를 누르거나, AI에서 생성한 문장을 여기에 직접 붙여넣으세요."
-        oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)"
-        onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
-        onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)},0)"
-      ></textarea>
-      <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
-        <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
-          <div class="byte-bar"><div class="byte-bar-fill" id="bar-${student.id}-${sec.id}" style="width:0%"></div></div>
-          <span class="byte-count" id="cnt-${student.id}-${sec.id}">0 B / 0 자</span>
-        </div>
-        <div class="result-btns">
-          <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
-          <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
-          <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
-        </div>
+    <textarea class="result-ta"
+      placeholder="✨ 생성하기를 누르거나, AI에서 생성한 문장을 여기에 직접 붙여넣으세요."
+      oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)"
+      onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
+      onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)},0)"
+    ></textarea>
+    <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
+      <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
+        <div class="byte-bar"><div class="byte-bar-fill" id="bar-${student.id}-${sec.id}" style="width:0%"></div></div>
+        <span class="byte-count" id="cnt-${student.id}-${sec.id}">0 B / 0 자</span>
+      </div>
+      <div class="result-btns">
+        <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
+        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
 

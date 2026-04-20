@@ -123,8 +123,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .char-ta{width:100%;min-height:130px;border:none;outline:none;font-size:13px;color:#374151;background:transparent;padding:12px 14px;resize:none;line-height:1.65;font-family:inherit;display:block}
 .char-ta::placeholder{color:#cbd5e1;line-height:1.7}
 .grade-bar{display:flex;align-items:center;justify-content:flex-end;gap:3px;padding:6px 10px 4px;border-bottom:1px solid #f1f5f9}
-.grade-lbl{font-size:11px;font-weight:700;color:#94a3b8;margin-right:2px;flex-shrink:0}
-.grade-hint{font-size:10.5px;color:#cbd5e1;margin-left:4px;white-space:nowrap;flex-shrink:0}
+.grade-lbl{font-size:11px;font-weight:700;color:#94a3b8;margin-right:0;flex-shrink:0}
+.grade-hint{font-size:10.5px;color:#cbd5e1;margin-left:1px;margin-right:8px;white-space:nowrap;flex-shrink:0}
 .grade-btn{font-size:12px;font-weight:700;padding:2px 6px;border-radius:5px;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;cursor:pointer;transition:all .15s;line-height:1.5;flex-shrink:0}
 .grade-btn:hover{border-color:#94a3b8;color:#475569}
 .grade-btn.ga{border-color:#bfdbfe;color:#2563eb}.grade-btn.ga.sel{background:#2563eb;border-color:#2563eb;color:#fff}
@@ -1051,28 +1051,26 @@ function renderRow(student, rowNum, sec) {
         <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>` : `
-    <div class="result-inner" style="flex:1;display:flex;flex-direction:column">
-      <textarea class="result-ta"
-        placeholder="✨ 생성하기를 누르거나, AI에서 생성한 문장을 여기에 직접 붙여넣으세요."
-        oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)"
-        onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
-        onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)},0)"
-      ></textarea>
-      ${getSubjectGroup(sec.name)==='기타'?`
+    <textarea class="result-ta"
+      placeholder="✨ 생성하기를 누르거나, AI에서 생성한 문장을 여기에 직접 붙여넣으세요."
+      oninput="onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)"
+      onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
+      onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)},0)"
+    ></textarea>
+    ${getSubjectGroup(sec.name)==='기타'?`
 <div style="margin:0 12px 6px;padding:7px 10px;background:#fffbeb;border:1px solid #fcd34d;border-radius:6px;font-size:11.5px;color:#92400e;line-height:1.5">
   ⚠️ 과목명을 인식하지 못했습니다. 탭 이름에 정확한 과목명을 입력하면 맞춤형 문장이 생성됩니다.<br>
   <span style="color:#b45309">예) 통합사회1, 생명과학Ⅱ, 미적분, 영어Ⅰ</span>
 </div>`:''}
-      <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
-        <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
-          <div class="byte-bar"><div class="byte-bar-fill" id="bar-${student.id}-${sec.id}" style="width:0%"></div></div>
-          <span class="byte-count" id="cnt-${student.id}-${sec.id}">0 B / 0 자</span>
-        </div>
-        <div class="result-btns">
-          <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
-          <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
-          <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
-        </div>
+    <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
+      <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
+        <div class="byte-bar"><div class="byte-bar-fill" id="bar-${student.id}-${sec.id}" style="width:0%"></div></div>
+        <span class="byte-count" id="cnt-${student.id}-${sec.id}">0 B / 0 자</span>
+      </div>
+      <div class="result-btns">
+        <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
+        <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
+        <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
 
