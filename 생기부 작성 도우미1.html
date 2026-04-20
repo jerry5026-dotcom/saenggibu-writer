@@ -644,6 +644,7 @@ let S = {
 let modifyTarget = null;
 let promptBuffer = '';
 let busyAll = false;
+window.addEventListener('beforeunload', e => { if(busyAll){e.preventDefault();e.returnValue='전체 생성이 진행 중입니다. 페이지를 떠나면 생성이 중단됩니다.';} });
 let pickerOpen = false;
 let _pendingDeleteSecId = null;
 let _pendingFile = null;
@@ -680,13 +681,15 @@ function loadStore() {
 }
 
 function saveStore() {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e) {}
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(S)); } catch(e) {
+    toast('⚠️ 데이터 저장 실패: 브라우저 저장 공간이 부족합니다. 엑셀로 백업하세요.', 'error');
+  }
 }
 
 // ══════════════════════════════════════════════════
 // ID / FACTORY
 // ══════════════════════════════════════════════════
-function uid() { return '_'+ Math.random().toString(36).slice(2,9) + Date.now().toString(36); }
+function uid() { return '_'+Math.random().toString(36).slice(2,9)+Math.random().toString(36).slice(2,6)+Date.now().toString(36); }
 
 function mkStudent() { return {id:uid(), num:'', name:''}; }
 
@@ -1066,7 +1069,8 @@ function onResultInput(sid, secId, val, byteLimit) {
 function countBytes(str) {
   if (!str) return {bytes:0, chars:0};
   const bytes = new TextEncoder().encode(str).length;
-  return { bytes, chars: Math.round(bytes / 3) };
+  const chars = [...str].length;
+  return { bytes, chars };
 }
 
 // ══════════════════════════════════════════════════
@@ -1208,19 +1212,31 @@ function translateApiError(msg) {
 async function callAPI(prompt) {
   const {provider,key,model} = S.api;
   if (!key) throw new Error('API 키가 설정되지 않았습니다.');
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 60000);
   let res, data, text;
-  if (provider==='openai') {
-    res = await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,temperature:0.7,response_format:{type:'json_object'},messages:[{role:'user',content:prompt}]})});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'OpenAI 오류 '+res.status));}
-    data=await res.json(); text=data.choices[0].message.content;
-  } else if (provider==='gemini') {
-    res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7}})});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'Gemini 오류 '+res.status));}
-    data=await res.json(); text=data.candidates[0].content.parts[0].text;
-  } else if (provider==='claude') {
-    res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:2048,messages:[{role:'user',content:prompt}]})});
-    if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'Claude 오류 '+res.status));}
-    data=await res.json(); text=data.content[0].text;
+  try {
+    if (provider==='openai') {
+      res = await fetch('https://api.openai.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},body:JSON.stringify({model,temperature:0.7,response_format:{type:'json_object'},messages:[{role:'user',content:prompt}]}),signal:controller.signal});
+      if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'OpenAI 오류 '+res.status));}
+      data=await res.json(); text=data.choices?.[0]?.message?.content;
+      if(!text) throw new Error('OpenAI 응답이 비어있습니다.');
+    } else if (provider==='gemini') {
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7}}),signal:controller.signal});
+      if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'Gemini 오류 '+res.status));}
+      data=await res.json(); text=data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if(!text) throw new Error('Gemini 응답이 비어있습니다.');
+    } else if (provider==='claude') {
+      res = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model,max_tokens:2048,messages:[{role:'user',content:prompt}]}),signal:controller.signal});
+      if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'Claude 오류 '+res.status));}
+      data=await res.json(); text=data.content?.[0]?.text;
+      if(!text) throw new Error('Claude 응답이 비어있습니다.');
+    }
+  } catch(e) {
+    if(e.name==='AbortError') throw new Error('요청 시간이 초과되었습니다. (60초)');
+    throw e;
+  } finally {
+    clearTimeout(timer);
   }
   return parseResult(text);
 }
@@ -1735,7 +1751,8 @@ function _doStudentListUpload(file) {
       S.sections.forEach(sec => {
         const newEntries = {};
         newStudents.forEach((st, i) => {
-          const oldSt = oldStudents[i];
+          const byName = st.name ? oldStudents.find(o => o.name === st.name) : null;
+          const oldSt = byName || oldStudents[i];
           newEntries[st.id] = (oldSt && sec.entries[oldSt.id]) ? sec.entries[oldSt.id] : {chars:'', result:''};
         });
         sec.entries = newEntries;
