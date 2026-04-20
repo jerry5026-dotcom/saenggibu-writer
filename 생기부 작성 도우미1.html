@@ -123,7 +123,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .result-loading{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px;gap:10px;color:#64748b;font-size:13px}
 .result-ta{width:100%;min-height:100px;border:none;outline:none;font-size:13px;color:#1e293b;background:transparent;padding:12px 14px;resize:none;line-height:1.75;font-family:inherit;overflow:hidden}
 .result-ta::placeholder{color:#cbd5e1}
-.result-footer{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-top:1px solid #f1f5f9;gap:8px;flex-wrap:wrap}
+.result-footer{display:flex;align-items:center;justify-content:flex-end;padding:7px 10px;border-top:1px solid #f1f5f9;gap:8px;flex-wrap:wrap}
 .byte-count{font-size:12px;color:#94a3b8;font-weight:500;display:flex;align-items:center;gap:5px}
 .byte-count.good{color:#16a34a}.byte-count.over{color:#dc2626}
 .byte-bar{height:4px;background:#e2e8f0;border-radius:2px;width:80px;overflow:hidden;flex-shrink:0}
@@ -561,6 +561,27 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 
 <input type="file" id="fileInp" accept=".xlsx,.xls" style="display:none" onchange="handleFileUpload(event)">
 <input type="file" id="studentListInp" accept=".xlsx,.xls" style="display:none" onchange="handleStudentListUpload(event)">
+<div class="overlay" id="historyOverlay" style="display:none">
+  <div class="modal" style="max-width:820px;width:100%">
+    <button class="modal-close" onclick="closeOverlay('historyOverlay')">×</button>
+    <div class="modal-title">↩ 이전 버전 비교</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#2563eb;margin-bottom:8px;padding:5px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;text-align:center">이전 문장 (복원 대상)</div>
+        <textarea id="histPrev" readonly style="width:100%;min-height:220px;resize:vertical;border:1.5px solid #bfdbfe;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.75;color:#1e293b;background:#f8faff;font-family:inherit;box-sizing:border-box"></textarea>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:8px;padding:5px 10px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;text-align:center">현재 문장</div>
+        <textarea id="histCurr" readonly style="width:100%;min-height:220px;resize:vertical;border:1.5px solid #e2e8f0;border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.75;color:#1e293b;background:#f8fafc;font-family:inherit;box-sizing:border-box"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeOverlay('historyOverlay')">취소</button>
+      <button class="btn btn-primary" onclick="confirmRestore()">↩ 복원하기</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -886,14 +907,14 @@ function renderRow(student, rowNum, sec) {
       onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
     >${esc(entry.result)}</textarea>
     <div class="result-footer">
-      <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px">
         <div class="byte-bar"><div class="byte-bar-fill ${barCls}" id="bar-${student.id}-${sec.id}" style="width:${Math.min(pct,100)}%"></div></div>
         <span class="byte-count ${barCls}" id="cnt-${student.id}-${sec.id}">${bytes} B / ${chars} 자${isOver?' ⚠':isGood?' ✓':''}</span>
       </div>
       <div class="result-btns">
         <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')" title="복사">📋 복사</button>
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')" title="AI로 수정">✏️ 수정</button>
-        ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
+        ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="openHistoryModal('${student.id}','${sec.id}')" title="이전 버전 비교 후 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>` : `
@@ -904,7 +925,7 @@ function renderRow(student, rowNum, sec) {
       onpaste="setTimeout(()=>{onResultInput('${student.id}','${sec.id}',this.value,${sec.byteLimit});fitHeight(this)},0)"
     ></textarea>
     <div class="result-footer" id="rf-${student.id}-${sec.id}" style="display:flex">
-      <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px">
         <div class="byte-bar"><div class="byte-bar-fill" id="bar-${student.id}-${sec.id}" style="width:0%"></div></div>
         <span class="byte-count" id="cnt-${student.id}-${sec.id}">0 B / 0 자</span>
       </div>
@@ -984,6 +1005,35 @@ function popHistory(sid, secId) {
   entry.result = prev;
   saveStore();
   refreshRow(student, sec);
+  toast('이전 버전으로 복원했습니다.', 'info');
+}
+
+let _histCtx = null;
+
+function openHistoryModal(sid, secId) {
+  const sec = getSection(secId);
+  const entry = sec?.entries[sid];
+  if (!entry?.history?.length) return;
+  _histCtx = {sid, secId};
+  document.getElementById('histPrev').value = entry.history[entry.history.length - 1];
+  document.getElementById('histCurr').value = entry.result || '';
+  showOverlay('historyOverlay');
+}
+
+function confirmRestore() {
+  if (!_histCtx) return;
+  const {sid, secId} = _histCtx;
+  const sec = getSection(secId);
+  const student = S.students.find(x=>x.id===sid);
+  if (!sec || !student) return;
+  const entry = sec.entries[sid];
+  if (!entry?.history?.length) return;
+  const prev = entry.history.pop();
+  entry.result = prev;
+  saveStore();
+  refreshRow(student, sec);
+  closeOverlay('historyOverlay');
+  _histCtx = null;
   toast('이전 버전으로 복원했습니다.', 'info');
 }
 
@@ -1279,14 +1329,14 @@ function refreshRow(student, sec) {
       onchange="patchEntry('${student.id}','${sec.id}','result',this.value)"
     >${esc(entry.result)}</textarea>
     <div class="result-footer">
-      <div style="display:flex;align-items:center;gap:7px;flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:7px">
         <div class="byte-bar"><div class="byte-bar-fill ${barCls}" id="bar-${student.id}-${sec.id}" style="width:${Math.min(pct,100)}%"></div></div>
         <span class="byte-count ${barCls}" id="cnt-${student.id}-${sec.id}">${bytes} B / ${chars} 자${isOver?' ⚠':isGood?' ✓':''}</span>
       </div>
       <div class="result-btns">
         <button class="btn btn-ghost btn-sm" onclick="copyResult('${student.id}','${sec.id}')">📋 복사</button>
         <button class="btn btn-ghost btn-sm" onclick="openModify('${student.id}','${sec.id}')">✏️ 수정</button>
-        ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="popHistory('${student.id}','${sec.id}')" title="이전 버전으로 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
+        ${histLen>0?`<button class="btn btn-ghost btn-sm" onclick="openHistoryModal('${student.id}','${sec.id}')" title="이전 버전 비교 후 복원">↩ 이전${histLen>1?` (${histLen})`:''}</button>`:''}
         <button class="btn btn-primary btn-sm" onclick="genOne('${student.id}','${sec.id}')">✨ 생성하기</button>
       </div>
     </div>`;
