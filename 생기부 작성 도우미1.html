@@ -309,7 +309,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 <!-- API 설정 -->
 <div class="overlay" id="apiOverlay" style="display:none">
   <div class="modal">
-    <button class="modal-close" onclick="closeOverlay('apiOverlay')">×</button>
+    <button class="modal-close" onclick="cancelApiModal()">×</button>
     <div class="modal-title">⚙️ AI API 설정</div>
     <div class="info-box">
       <strong>API 키 없이도 사용 가능합니다.</strong><br>
@@ -331,7 +331,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="clearApiKey()">키 초기화</button>
-      <button class="btn btn-outline" onclick="closeOverlay('apiOverlay')">취소</button>
+      <button class="btn btn-outline" onclick="cancelApiModal()">취소</button>
       <button class="btn btn-primary" onclick="saveApiSettings()">저장</button>
     </div>
   </div>
@@ -627,6 +627,7 @@ let pickerOpen = false;
 let _pendingDeleteSecId = null;
 let _pendingFile = null;
 let _pendingUploadType = null;
+let _apiSnapshot = null;
 let _pendingPaste = null; // { lines, cleanLines, rawText, sid, secId }
 
 // ══════════════════════════════════════════════════
@@ -1370,11 +1371,23 @@ function legacyCopy(text) {
 // API SETTINGS
 // ══════════════════════════════════════════════════
 function openApiModal() {
+  _apiSnapshot = {provider:S.api.provider, key:S.api.key, model:S.api.model};
   selectProv(S.api.provider);
   document.getElementById('apiKeyInp').value=S.api.key||'';
   populateModels(S.api.provider);
   document.getElementById('modelSel').value=S.api.model;
   showOverlay('apiOverlay');
+}
+
+function cancelApiModal() {
+  if (_apiSnapshot) {
+    S.api.provider = _apiSnapshot.provider;
+    S.api.key     = _apiSnapshot.key;
+    S.api.model   = _apiSnapshot.model;
+    _apiSnapshot = null;
+    updateBadge();
+  }
+  closeOverlay('apiOverlay');
 }
 
 function selectProv(p) {
@@ -1401,8 +1414,7 @@ function saveApiSettings() {
 
 function clearApiKey() {
   document.getElementById('apiKeyInp').value='';
-  S.api.key=''; saveStore(); updateBadge();
-  toast('API 키가 초기화되었습니다.','info');
+  toast('키를 초기화했습니다. 저장 버튼을 눌러야 반영됩니다.', 'info');
 }
 
 function updateBadge() {

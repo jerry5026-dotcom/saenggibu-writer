@@ -122,7 +122,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .td-input{padding:0}
 .char-ta{width:100%;min-height:130px;border:none;outline:none;font-size:13px;color:#374151;background:transparent;padding:12px 14px;resize:none;line-height:1.65;font-family:inherit;display:block}
 .char-ta::placeholder{color:#cbd5e1;line-height:1.7}
-.grade-bar{display:flex;align-items:center;gap:3px;padding:6px 10px 4px;border-bottom:1px solid #f1f5f9}
+.grade-bar{display:flex;align-items:center;justify-content:flex-end;gap:3px;padding:6px 10px 4px;border-bottom:1px solid #f1f5f9}
 .grade-lbl{font-size:11px;font-weight:700;color:#94a3b8;margin-right:2px;flex-shrink:0}
 .grade-hint{font-size:10.5px;color:#cbd5e1;margin-left:4px;white-space:nowrap;flex-shrink:0}
 .grade-btn{font-size:12px;font-weight:700;padding:2px 6px;border-radius:5px;border:1.5px solid #e2e8f0;background:#fff;color:#94a3b8;cursor:pointer;transition:all .15s;line-height:1.5;flex-shrink:0}
@@ -312,7 +312,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 <!-- API 설정 -->
 <div class="overlay" id="apiOverlay" style="display:none">
   <div class="modal">
-    <button class="modal-close" onclick="closeOverlay('apiOverlay')">×</button>
+    <button class="modal-close" onclick="cancelApiModal()">×</button>
     <div class="modal-title">⚙️ AI API 설정</div>
     <div class="info-box">
       <strong>API 키 없이도 사용 가능합니다.</strong><br>
@@ -334,7 +334,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     </div>
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="clearApiKey()">키 초기화</button>
-      <button class="btn btn-outline" onclick="closeOverlay('apiOverlay')">취소</button>
+      <button class="btn btn-outline" onclick="cancelApiModal()">취소</button>
       <button class="btn btn-primary" onclick="saveApiSettings()">저장</button>
     </div>
   </div>
@@ -729,6 +729,7 @@ let busyAll = false;
 let _pendingDeleteSecId = null;
 let _pendingFile = null;
 let _pendingUploadType = null;
+let _apiSnapshot = null;
 let _pendingPaste = null; // { cleanLines, rawText, sid, secId }
 
 // ══════════════════════════════════════════════════
@@ -1629,6 +1630,7 @@ function legacyCopy(text) {
 // API SETTINGS
 // ══════════════════════════════════════════════════
 function openApiModal() {
+  _apiSnapshot = {provider:S.api.provider, key:S.api.key, model:S.api.model};
   selectProv(S.api.provider);
   document.getElementById('apiKeyInp').value=S.api.key||'';
   populateModels(S.api.provider);
@@ -1660,8 +1662,18 @@ function saveApiSettings() {
 
 function clearApiKey() {
   document.getElementById('apiKeyInp').value='';
-  S.api.key=''; saveStore(); updateBadge();
-  toast('API 키가 초기화되었습니다.','info');
+  toast('키를 초기화했습니다. 저장 버튼을 눌러야 반영됩니다.', 'info');
+}
+
+function cancelApiModal() {
+  if (_apiSnapshot) {
+    S.api.provider = _apiSnapshot.provider;
+    S.api.key     = _apiSnapshot.key;
+    S.api.model   = _apiSnapshot.model;
+    _apiSnapshot = null;
+    updateBadge();
+  }
+  closeOverlay('apiOverlay');
 }
 
 function updateBadge() {
