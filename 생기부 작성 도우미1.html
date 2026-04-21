@@ -980,17 +980,24 @@ function renderRow(student, rowNum, sec) {
 // ══════════════════════════════════════════════════
 function patchStudent(sid, field, val) {
   const s = S.students.find(x=>x.id===sid);
-  if (s) {
-    if (field === 'name' && val.trim()) {
-      const dup = S.students.find(x=>x.id!==sid && x.name.trim()===val.trim());
-      if (dup) toast(`'${val}' 이름이 이미 존재합니다.`, 'error');
+  if (!s) return;
+  if (field === 'name' && val.trim()) {
+    const dup = S.students.find(x=>x.id!==sid && x.name.trim()===val.trim());
+    if (dup) {
+      toast(`'${val}' 이름이 이미 존재합니다. 변경이 취소되었습니다.`, 'error');
+      renderContent();
+      return;
     }
-    if (field === 'num' && val.trim()) {
-      const dup = S.students.find(x=>x.id!==sid && x.num.trim()===val.trim());
-      if (dup) toast(`'${val}' 번호가 이미 존재합니다.`, 'error');
-    }
-    s[field]=val; saveStore();
   }
+  if (field === 'num' && val.trim()) {
+    const dup = S.students.find(x=>x.id!==sid && x.num.trim()===val.trim());
+    if (dup) {
+      toast(`'${val}' 번호가 이미 존재합니다. 변경이 취소되었습니다.`, 'error');
+      renderContent();
+      return;
+    }
+  }
+  s[field]=val; saveStore();
 }
 
 function patchEntry(sid, secId, field, val) {
@@ -1023,6 +1030,9 @@ function saveHistory(sid, secId) {
   const oldResult = sec.entries[sid]?.result?.trim() || '';
   if (!oldResult) return;
   if (!sec.entries[sid].history) sec.entries[sid].history = [];
+  // 가장 최근 히스토리와 동일하면 중복 저장 방지
+  const last = sec.entries[sid].history[sec.entries[sid].history.length - 1];
+  if (last === oldResult) return;
   sec.entries[sid].history = [...sec.entries[sid].history.slice(-4), oldResult];
   saveStore();
 }
@@ -1317,9 +1327,10 @@ async function callAPI(prompt) {
 
 function parseResult(raw) {
   const t=(raw||'').trim().replace(/^```json\s*/i,'').replace(/^```\s*/i,'').replace(/\s*```$/,'').trim();
-  try{const o=JSON.parse(t);return o['문장']||o['sentence']||t;}catch(e){}
-  const m=t.match(/"문장"\s*:\s*"([\s\S]*)"/);
-  if(m)return m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"');
+  try{const o=JSON.parse(t);if(o['문장'])return o['문장'];if(o['sentence'])return o['sentence'];}catch(e){}
+  // non-greedy + 이스케이프 처리: \" 또는 따옴표·백슬래시 외 문자만 매칭
+  const m=t.match(/"문장"\s*:\s*"((?:\\.|[^"\\])*)"/);
+  if(m)return m[1].replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\');
   return t;
 }
 
@@ -1402,7 +1413,8 @@ function setRowError(sid, secId, msg) {
 
 function refreshRow(student, sec) {
   const row=document.getElementById(`row-${student.id}-${sec.id}`);
-  if(!row){renderContent();return;}
+  // row를 찾지 못하면 다른 탭이거나 DOM 정합성이 깨진 상태 - 전체 재렌더는 입력 중인 내용을 잃을 수 있어 silent skip
+  if(!row)return;
   row.classList.remove('loading');
   const ri=document.getElementById(`ri-${student.id}-${sec.id}`);
   if(!ri)return;
