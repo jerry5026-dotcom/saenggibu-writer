@@ -2227,8 +2227,14 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){
 // ══════════════════════════════════════════════════
 init();
 </script>
-<footer style="text-align:center;padding:20px 0 16px;color:#94a3b8;font-size:13px;letter-spacing:.3px">
-  선생님의 소중한 퇴근 시간을 응원합니다 &nbsp;|&nbsp; 조기원 (사내고등학교, jerry5026@gmail.com)
+<style>
+.site-footer{text-align:center;padding:20px 0 16px;font-size:13px;letter-spacing:.3px;color:#94a3b8;opacity:.85;transition:opacity .2s,color .2s}
+.site-footer:hover{opacity:1;color:#475569}
+.footer-email{color:inherit;text-decoration:none;transition:color .15s}
+.footer-email:hover{color:#2563eb;text-decoration:underline}
+</style>
+<footer class="site-footer">
+  선생님의 소중한 퇴근 시간을 응원합니다 &nbsp;|&nbsp; 조기원 (사내고등학교, <a href="mailto:jerry5026@gmail.com" class="footer-email">jerry5026@gmail.com</a>)
 </footer>
 </body>
 </html>
