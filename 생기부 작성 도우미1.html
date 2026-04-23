@@ -1737,13 +1737,18 @@ function toggleProviderDropdown(e) {
   dd.style.display = 'block';
 }
 
+// 모델 식별자에서 끝에 붙은 날짜(YYYYMMDD) 제거 — 표시용 (API 값은 원본 유지)
+function formatModelName(name) {
+  return (name || '').replace(/-\d{8}$/, '');
+}
+
 function renderProviderDropdown() {
   const dd = document.getElementById('providerDropdown');
   if (!dd) return;
   const items = ['openai','gemini','claude'].map(p => {
     const hasKey = !!S.api.keys[p];
     const active = S.api.active === p;
-    const modelName = S.api.models[p] || '';
+    const modelName = formatModelName(S.api.models[p] || '');
     const cls = `prov-item${active?' active':''}${hasKey?'':' nokey'}`;
     const click = hasKey ? `onclick="switchActiveProvider('${p}')"` : `onclick="openApiModalFor('${p}')"`;
     const status = active ? '✓' : (hasKey ? '' : '＋');
