@@ -1412,6 +1412,22 @@ function buildPrompt(student, sec, modInstr) {
   };
   const gradeSection = entry.grade ? `\n# [절대 준수 규칙 0: 성취도 등급 반영 — 최우선 적용]\n이 학생의 이 과목 성취도 등급은 "${entry.grade}등급"입니다. 한국 고등학교 성취도 기준: A(90% 이상), B(80~89%), C(70~79%), D(60~69%), E(60% 미만). 아래 기준에 따라 어휘 수준·서술 깊이·표현 방식·문장 구조를 조정하며, 다른 모든 규칙보다 이 규칙을 우선 적용하시오.\n${gradeGuides[entry.grade]}` : '';
 
+  // 수정 모드 헤더 (modInstr 있을 때만 추가, 별도 모드 명시)
+  const modSection = modInstr ? `
+
+# [작업 모드: 기존 문장 수정]
+이번 작업은 새로 작성하는 것이 아니라, 아래 [기존 문장]을 [수정 지시사항]에 따라 보완·수정하는 것입니다.
+- 기존 문장의 좋은 표현·구조는 최대한 보존하시오.
+- [수정 지시사항]에 해당하는 부분만 변경하시오.
+- 원본 [수업 관찰 내용]에 없는 사실을 새로 만들어 추가하지 마시오.
+- 아래의 모든 절대 준수 규칙은 그대로 적용됩니다.
+
+# [기존 문장]
+${entry.result}
+
+# [수정 지시사항]
+${modInstr}` : '';
+
   return `# [역할 부여]
 당신은 대한민국 최고의 고등학교 교과 담당 교사이자 입학 사정관을 사로잡는 학교생활기록부 세부능력 및 특기사항(세특) 작성 전문가입니다. 교육부의 기재 요령을 철저히 준수하며, 수업 관찰 데이터를 바탕으로 학생의 교과 역량을 사실적이고 구조적으로 서술합니다.
 
@@ -1420,7 +1436,7 @@ function buildPrompt(student, sec, modInstr) {
 - 작성 과목: ${sec.name}
 - 성취도 등급: ${entry.grade ? entry.grade+'등급 (A 최상위 ~ E 최하위)' : '미입력'}
 - 수업 관찰 내용:
-${entry.chars||'(내용 없음)'}${modInstr ? `\n\n# [수정 지시사항]\n${modInstr}\n\n# [기존 문장]\n${entry.result}` : ''}
+${entry.chars||'(내용 없음)'}${modSection}
 ${gradeSection}
 
 # [세특 전용 절대 준수 규칙]
@@ -1440,7 +1456,7 @@ ${gradeSection}
    - 인과 연결: "~을 분석하여 ○○을 도출함", "~에서 한계를 경험하고 ○○으로 보완함"
    - 과정 연결: "~을 수집하고 ○○에 적용하며 ○○을 검증함"
    - 전환 연결: "초기에는 ~에 집중하였으나, ○○의 필요성을 인식하고 ○○을 시도함"
-   - 짧은 단문 나열 대신 3~4개의 행동을 하나의 문장 흐름으로 묶어 60~80자 내외로 서술한다.
+   - 짧은 단문 나열 대신 3~4개의 행동을 하나의 문장 흐름으로 묶어 서술하되, 한 문장은 보통 60~80자 내외를 권장하고 활동 수와 흐름에 따라 유연하게 조정한다(의미가 흐려질 정도로 길어지는 것은 피한다).
 
 # [절대 준수 규칙 2: 내용 및 구조]
 1. 원인→과정→결과 구조를 준수한다.
@@ -1476,12 +1492,13 @@ ${gradeSection}
 ③ 발전가능성: 도전 정신, 자기주도성, 변화와 성장
 ④ 인성: 협력, 나눔, 배려, 공동체 기여
 
-# [절대 준수 규칙 7: 분량 (가장 엄격하게 준수)]
-- 목표 바이트: ${sec.byteLimit}B (UTF-8 기준, 한글 1자=3바이트)
-- 목표 글자 수: 공백 포함 ${minC}자 ~ ${maxC}자 (이 범위를 반드시 준수할 것)
-- 글자 수가 부족하면 활동의 과정·의미를 구체적으로 보완하여 채울 것.
-- 글자 수가 초과하면 중복 표현·접속어를 제거하여 줄일 것.
-- 절대로 ${minC}자 미만 또는 ${maxC}자 초과로 작성하지 말 것.
+# [절대 준수 규칙 7: 분량 (가장 엄격하게 준수 — NEIS 입력 한도)]
+- ★ 절대 한도: ${sec.byteLimit}바이트 (UTF-8 기준) — 절대로 초과하지 말 것
+- 바이트 환산 기준: 한글 1자 = 3바이트, 영어/숫자/공백/구두점 = 1바이트
+- 참고용 글자 수: 모두 한글일 때 약 ${minC}~${maxC}자 수준 (영어·숫자·공백이 섞이면 실제 글자 수는 더 많아질 수 있음)
+- 분량이 부족하면 활동의 과정·의미를 구체적으로 보완하여 채울 것.
+- 분량이 초과하면 중복 표현·접속어를 제거하여 줄일 것.
+- 작성 후 반드시 본문의 UTF-8 바이트 수를 머릿속으로 추정하여 ${sec.byteLimit}바이트 이내인지 확인할 것.
 ${guide}
 
 # [내부 루브릭 기반 자가 검수 - 출력 금지]
@@ -1491,7 +1508,7 @@ ${guide}
 3. 문체/규칙: 명사형 종결어미, 과목명·이름 미포함, 금지어 여부, 문장 길이 기준을 모두 준수했는가?
 4. 구체성: 수치·역할·변화의 증거가 포함되어 있는가? 해당 학생만의 고유한 서술인가?
 5. 성장 서사: 단순 나열이 아닌 동기→행동→과정→변화의 흐름이 담겨 있는가?
-6. 글자 수: 공백 포함 ${minC}자 ~ ${maxC}자 범위를 정확히 준수했는가? (목표 ${sec.byteLimit}B 이내)
+6. 분량: 본문이 ${sec.byteLimit}바이트(UTF-8 기준) 이내인가? (한글=3B, 영문/숫자/공백=1B)
 ※ 위 기준을 모두 충족하는 단 하나의 완벽한 최종 결과물만 도출할 것.
 
 # [최종 출력 형식]
@@ -1531,7 +1548,7 @@ async function callAPI(prompt) {
       data=await res.json(); text=data.choices?.[0]?.message?.content;
       if(!text) throw new Error('OpenAI 응답이 비어있습니다.');
     } else if (provider==='gemini') {
-      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7}}),signal:controller.signal});
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.7,responseMimeType:'application/json'}}),signal:controller.signal});
       if(!res.ok){const e=await res.json().catch(()=>({}));throw new Error(translateApiError(e.error?.message||'Gemini 오류 '+res.status));}
       data=await res.json(); text=data.candidates?.[0]?.content?.parts?.[0]?.text;
       if(!text) throw new Error('Gemini 응답이 비어있습니다.');
