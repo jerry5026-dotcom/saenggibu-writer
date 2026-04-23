@@ -197,8 +197,9 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}::-webkit-scrollbar-thumb:hover{background:#94a3b8}
 
-/* ─── Mobile Responsive ─── */
-@media (max-width: 768px) {
+/* ─── Mobile / Tablet Portrait Responsive (≤900px) ─── */
+/* 적용 대상: 모든 폰, iPad mini/일반/Air/Pro 세로 모드 */
+@media (max-width: 900px) {
   /* Header */
   .header{height:auto;padding:10px 14px;flex-wrap:wrap;gap:8px}
   .logo{font-size:14px}
@@ -235,16 +236,27 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
   .num-sub{width:40px}
 
   /* 학생특성 입력 */
-  .td-input{margin:4px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+  .td-input{margin:4px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;padding:0;position:relative}
   .td-input::before{content:'📝 학생 특성';display:block;font-size:11px;font-weight:700;color:#94a3b8;padding:8px 14px 0;letter-spacing:.3px}
   .char-ta{min-height:80px;padding:6px 14px 10px}
 
+  /* 학생 수준 바 — 카드형 레이아웃에 맞춰 정적(static) 배치 */
+  .level-bar{position:static;border-top:1px solid #f1f5f9;background:#fafbfc;padding:8px 12px;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+  .level-lbl{font-size:11px}
+  .level-hint{font-size:10.5px;margin-right:4px}
+  .level-btn{padding:3px 8px;font-size:12px}
+
   /* 생성된 문장 */
-  .td-result{border-left:none;border-top:none;margin:4px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+  .td-result{border-left:none;border-top:none;margin:4px 0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;padding:0;position:relative}
   .td-result::before{content:'✨ 생성된 문장';display:block;font-size:11px;font-weight:700;color:#94a3b8;padding:8px 14px 0;letter-spacing:.3px}
-  .result-inner{min-height:80px}
+  .result-inner{min-height:auto;display:block}
   .result-ta{min-height:80px;padding:6px 14px 10px}
   .result-empty{padding:14px}
+
+  /* 결과 푸터(복사·수정·이전·생성하기) — 카드형에서 정적 배치 */
+  .result-footer{position:static;border-top:1px solid #f1f5f9;background:#fafbfc;padding:8px 12px;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+  .result-btns{flex-wrap:wrap;gap:4px}
+  .byte-bar{width:60px}
 
   /* 학생 추가 행 */
   .add-row td{padding:10px 0;text-align:center}
@@ -260,8 +272,21 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
   .prov-name{font-size:12px}
   .modal-footer{flex-wrap:wrap}
 
+  /* 제공자 빠른 전환 드롭다운 — 작은 화면에서 화면 밖 이탈 방지 */
+  .provider-dropdown{max-width:calc(100vw - 24px);min-width:200px}
+
   /* Footer */
   footer{font-size:10px;padding:14px 0 10px}
+}
+
+/* ─── Small Phone Refinement (≤480px) ─── */
+@media (max-width: 480px) {
+  .header-right{gap:4px}
+  .header-right .btn{padding:5px 7px;font-size:11.5px}
+  .level-btn{padding:2px 6px;font-size:11px}
+  .byte-bar{width:48px}
+  .byte-count{font-size:11px}
+  .result-btns .btn-sm{padding:4px 7px;font-size:11px}
 }
 
 /* ══════════ 비밀번호 잠금 화면 ══════════ */
