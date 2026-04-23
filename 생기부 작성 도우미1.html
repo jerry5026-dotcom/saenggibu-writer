@@ -533,15 +533,35 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>2. 명단 업로드</h3>
+      <h3>2. 학생 수준 설정 (선택)</h3>
       <ul>
-        <li>엑셀 파일 준비: A열=번호, B열=이름, 1행=헤더</li>
-        <li>[👥 명단 업로드] 클릭하여 파일 선택</li>
-        <li>기존 입력 데이터는 순서에 맞게 유지됨</li>
+        <li>입력칸 하단의 <strong>상 / 중 / 하</strong> 버튼으로 학생 수준을 선택</li>
+        <li>선택 시 AI가 수준에 맞는 어휘·표현·서술 방향으로 문장 생성</li>
+        <li><strong>자율 / 동아리 / 진로</strong>: 학업 성취 기반 지침 적용 (탐구 깊이 · 주도성 · 성장 과정)</li>
+        <li><strong>행동특성 및 종합의견</strong>: 태도·인성 기반 지침 적용 (리더십 · 협력 · 격려 어조)</li>
+        <li>미선택 시 수준과 무관하게 일반 작성됨</li>
+        <li>같은 버튼을 다시 누르면 선택 해제</li>
       </ul>
     </div>
     <div class="manual-section">
-      <h3>3. 엑셀에서 학생 특성 일괄 붙여넣기 <span class="manual-badge">★ NEW</span></h3>
+      <h3>3. AI 생성 문장 다듬기</h3>
+      <ul>
+        <li><strong>📋 복사</strong>: 생성된 문장을 클립보드에 복사</li>
+        <li><strong>✏️ 수정</strong>: 클릭 후 수정 지시사항 입력 → AI가 기존 문장의 좋은 부분은 유지하며 보완</li>
+        <li><strong>↩ 이전</strong>: 수정/재생성 후에 표시되는 버튼 → 모달에서 이전 vs 현재 문장을 좌우로 비교한 뒤 복원 여부 선택</li>
+        <li>이전 버전은 학생당 최대 5개까지 자동 보관됨</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>4. 명단 업로드</h3>
+      <ul>
+        <li>엑셀 파일 준비: A열=번호, B열=이름, 1행=헤더</li>
+        <li>[👥 명단 업로드] 클릭하여 파일 선택</li>
+        <li>기존 입력 데이터는 이름 기준으로 매칭되어 유지됨</li>
+      </ul>
+    </div>
+    <div class="manual-section">
+      <h3>5. 엑셀에서 학생 특성 일괄 붙여넣기</h3>
       <ul>
         <li>엑셀에서 학생 특성 내용이 입력된 셀들을 복사 (Ctrl+C)</li>
         <li>첫 번째 학생의 <strong>"학생 특성"</strong> 칸을 클릭 후 붙여넣기 (Ctrl+V)</li>
@@ -549,21 +569,25 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>4. AI API 설정</h3>
+      <h3>6. AI API 설정 (다중 제공자 + 빠른 전환)</h3>
       <ul>
-        <li>[⚙️ API 설정] 클릭 → AI 서비스와 API 키 입력</li>
+        <li>[⚙️ API 설정] 클릭 → 제공자(Claude / OpenAI / Gemini) 카드를 선택해 키 입력 후 [저장]</li>
+        <li>저장 시 자동 검증: 형식 점검 + 실제 API 핑 (8초 이내) → 잘못된 키는 거부</li>
+        <li><strong>3개 제공자에 각각 키를 등록</strong>해두면, 키가 있는 카드에 ✓ 표시</li>
+        <li>헤더의 <strong>"○○ 연결됨 ▾"</strong> 배지 클릭 → 드롭다운에서 다른 제공자로 즉시 전환</li>
         <li>API 키 없이도 프롬프트 복사 모드로 ChatGPT 등에서 사용 가능</li>
       </ul>
     </div>
     <div class="manual-section">
-      <h3>5. 엑셀 저장/불러오기</h3>
+      <h3>7. 엑셀 저장/불러오기</h3>
       <ul>
         <li>[엑셀 다운로드]: 영역별 시트로 전체 저장</li>
-        <li>[엑셀 불러오기]: 저장한 파일로 복원</li>
+        <li>컬럼 순서: <strong>번호 / 이름 / 수준 / 학생 특성 / 생성된 문장</strong></li>
+        <li>[엑셀 불러오기]: 저장한 파일로 복원 (수준 컬럼도 자동 인식)</li>
       </ul>
     </div>
     <div class="manual-section">
-      <h3>6. 비밀번호 설정 🔒</h3>
+      <h3>8. 비밀번호 설정 🔒</h3>
       <ul>
         <li>[⚙️ API 설정] 하단의 "🔒 비밀번호 설정/변경" 클릭</li>
         <li>숫자 4~6자리로 설정</li>
@@ -572,7 +596,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>7. 데이터 저장</h3>
+      <h3>9. 데이터 저장</h3>
       <ul>
         <li>입력 내용은 브라우저에 자동 저장됨 (같은 브라우저에서만 유지)</li>
         <li>중요 데이터는 [엑셀 다운로드]로 백업 권장</li>

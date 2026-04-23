@@ -551,16 +551,40 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </div>
 
       <div class="manual-section">
-        <h3>3. 명단 업로드</h3>
+        <h3>3. 성취도 등급 설정 (선택)</h3>
         <ul>
-          <li>엑셀 파일 준비: A열=번호, B열=이름, 1행=헤더</li>
-          <li>[👥 명단 업로드] 클릭하여 파일 선택</li>
-          <li>기존 입력 데이터는 순서에 맞게 유지됨</li>
+          <li>입력칸 하단의 <strong>A / B / C / D / E</strong> 버튼으로 학생 성취도를 선택</li>
+          <li>선택 시 AI가 등급에 맞는 어휘·서술 깊이·문장 구조로 생성</li>
+          <li><strong>A (90% 이상)</strong>: 교사 지도 범위 초과 · 심화·확장 탐구</li>
+          <li><strong>B (80~89%)</strong>: 교과 범위 능동 적용 · 성실한 참여</li>
+          <li><strong>C (70~79%)</strong>: 핵심 내용 충실 이행 · 안정적 활동</li>
+          <li><strong>D (60~69%)</strong>: 노력하는 과정 · 성장 가능성 강조</li>
+          <li><strong>E (60% 미만)</strong>: 기초 참여·잠재력 (전적 긍정 서술)</li>
+          <li>미선택 시 등급과 무관하게 일반 작성됨 / 같은 버튼 재클릭 시 해제</li>
         </ul>
       </div>
 
       <div class="manual-section">
-        <h3>4. 엑셀에서 학생 특성 일괄 붙여넣기 ★</h3>
+        <h3>4. AI 생성 문장 다듬기</h3>
+        <ul>
+          <li><strong>📋 복사</strong>: 생성된 문장을 클립보드에 복사</li>
+          <li><strong>✏️ 수정</strong>: 클릭 후 수정 지시사항 입력 → AI가 기존 문장의 좋은 부분은 유지하며 보완</li>
+          <li><strong>↩ 이전</strong>: 수정/재생성 후에 표시되는 버튼 → 모달에서 이전 vs 현재 문장을 좌우로 비교한 뒤 복원 여부 선택</li>
+          <li>이전 버전은 학생당 최대 5개까지 자동 보관됨</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>5. 명단 업로드</h3>
+        <ul>
+          <li>엑셀 파일 준비: A열=번호, B열=이름, 1행=헤더</li>
+          <li>[👥 명단 업로드] 클릭하여 파일 선택</li>
+          <li>기존 입력 데이터는 이름 기준으로 매칭되어 유지됨</li>
+        </ul>
+      </div>
+
+      <div class="manual-section">
+        <h3>6. 엑셀에서 학생 특성 일괄 붙여넣기</h3>
         <div class="manual-hl">엑셀에서 수업 관찰 내용이 입력된 셀들을 복사(Ctrl+C) → 첫 번째 학생의 "수업 관찰 내용" 칸 클릭 후 붙여넣기(Ctrl+V) → 자동으로 아래 학생들까지 순서대로 채워짐</div>
         <ul>
           <li>각 행이 한 명의 학생 데이터로 배분됨</li>
@@ -570,23 +594,27 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </div>
 
       <div class="manual-section">
-        <h3>5. AI API 설정</h3>
+        <h3>7. AI API 설정 (다중 제공자 + 빠른 전환)</h3>
         <ul>
-          <li>[⚙️ API 설정] 클릭 → AI 서비스와 API 키 입력</li>
+          <li>[⚙️ API 설정] 클릭 → 제공자(Claude / OpenAI / Gemini) 카드를 선택해 키 입력 후 [저장]</li>
+          <li>저장 시 자동 검증: 형식 점검 + 실제 API 핑 (8초 이내) → 잘못된 키는 거부</li>
+          <li><strong>3개 제공자에 각각 키를 등록</strong>해두면, 키가 있는 카드에 ✓ 표시</li>
+          <li>헤더의 <strong>"○○ 연결됨 ▾"</strong> 배지 클릭 → 드롭다운에서 다른 제공자로 즉시 전환</li>
           <li>API 키 없이도 프롬프트 복사 모드로 ChatGPT 등에서 사용 가능</li>
         </ul>
       </div>
 
       <div class="manual-section">
-        <h3>6. 엑셀 저장/불러오기</h3>
+        <h3>8. 엑셀 저장/불러오기</h3>
         <ul>
           <li>[엑셀 다운로드]: 과목별 시트로 전체 저장</li>
-          <li>[엑셀 불러오기]: 저장한 파일로 복원</li>
+          <li>컬럼 순서: <strong>번호 / 이름 / 성취도 / 수업 관찰 내용 / 생성된 세특 문장</strong></li>
+          <li>[엑셀 불러오기]: 저장한 파일로 복원 (성취도 컬럼 자동 인식, 없는 파일도 호환)</li>
         </ul>
       </div>
 
       <div class="manual-section">
-        <h3>7. 비밀번호 설정 🔒</h3>
+        <h3>9. 비밀번호 설정 🔒</h3>
         <ul>
           <li>[⚙️ API 설정] 하단의 "🔒 비밀번호 설정/변경" 클릭</li>
           <li>숫자 4~6자리로 설정</li>
@@ -596,7 +624,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </div>
 
       <div class="manual-section">
-        <h3>8. 데이터 저장</h3>
+        <h3>10. 데이터 저장</h3>
         <ul>
           <li>입력 내용은 브라우저에 자동 저장됨 (같은 브라우저에서만 유지)</li>
           <li>중요 데이터는 [엑셀 다운로드]로 백업 권장</li>
@@ -604,7 +632,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </div>
 
       <div class="manual-section">
-        <h3>9. 교과군별 탭 색상 및 과목 목록</h3>
+        <h3>11. 교과군별 탭 색상 및 과목 목록</h3>
         <p style="font-size:12px;color:#64748b;margin:0 0 10px">탭 이름에 아래 과목명 키워드가 포함되면 해당 교과군으로 자동 분류되며, 색상 점(●)으로 표시됩니다. 2015·2022 교육과정 모두 지원합니다.</p>
         <div style="display:flex;flex-direction:column;gap:5px">
 
