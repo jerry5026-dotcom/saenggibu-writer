@@ -336,7 +336,7 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <div class="modal-footer">
       <button class="btn btn-ghost" onclick="clearApiKey()">키 초기화</button>
       <button class="btn btn-outline" onclick="cancelApiModal()">취소</button>
-      <button class="btn btn-primary" onclick="saveApiSettings()">저장</button>
+      <button class="btn btn-primary" id="apiSaveBtn" onclick="saveApiSettings()">저장</button>
     </div>
   </div>
 </div>
@@ -1733,11 +1733,70 @@ function populateModels(p) {
   sel.value = known ? S.api.model : list[0]?.v;
 }
 
-function saveApiSettings() {
-  S.api.key = document.getElementById('apiKeyInp').value.trim();
-  S.api.model = document.getElementById('modelSel').value;
-  saveStore(); updateBadge(); closeOverlay('apiOverlay');
-  toast(S.api.key ? 'API 설정 저장됨' : '프롬프트 복사 모드로 사용합니다.', S.api.key ? 'success' : 'info');
+async function validateApiKey(provider, key, model) {
+  // 형식 빠른 점검
+  if (provider === 'openai'  && !/^sk-/.test(key))     throw new Error('OpenAI 키 형식이 올바르지 않습니다 (sk-로 시작해야 함).');
+  if (provider === 'claude'  && !/^sk-ant-/.test(key)) throw new Error('Claude 키 형식이 올바르지 않습니다 (sk-ant-로 시작해야 함).');
+  if (provider === 'gemini'  && key.length < 20)       throw new Error('Gemini 키 형식이 올바르지 않습니다.');
+
+  // 실제 API 핑 (8초 타임아웃)
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  try {
+    let res;
+    if (provider === 'openai') {
+      res = await fetch('https://api.openai.com/v1/models', { headers: {'Authorization':'Bearer '+key}, signal: controller.signal });
+    } else if (provider === 'gemini') {
+      res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`, { signal: controller.signal });
+    } else if (provider === 'claude') {
+      res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body: JSON.stringify({ model: model||'claude-3-5-haiku-latest', max_tokens:1, messages:[{role:'user',content:'hi'}] }),
+        signal: controller.signal
+      });
+    }
+    if (!res.ok) {
+      const e = await res.json().catch(()=>({}));
+      const msg = e.error?.message || `HTTP ${res.status}`;
+      throw new Error(translateApiError(msg));
+    }
+  } catch(e) {
+    if (e.name === 'AbortError') throw new Error('검증 시간이 초과되었습니다. 네트워크를 확인해주세요. (8초)');
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function saveApiSettings() {
+  const key = document.getElementById('apiKeyInp').value.trim();
+  const model = document.getElementById('modelSel').value;
+  const provider = S.api.provider;
+  const btn = document.getElementById('apiSaveBtn');
+
+  // 키가 비어있으면 검증 없이 저장 (프롬프트 복사 모드)
+  if (!key) {
+    S.api.key = ''; S.api.model = model;
+    saveStore(); updateBadge(); closeOverlay('apiOverlay');
+    toast('프롬프트 복사 모드로 사용합니다.', 'info');
+    return;
+  }
+
+  // 저장 버튼 로딩 상태
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<span class="spin spin-sm"></span> 검증 중…'; }
+
+  try {
+    await validateApiKey(provider, key, model);
+    S.api.key = key; S.api.model = model;
+    saveStore(); updateBadge(); closeOverlay('apiOverlay');
+    toast('✓ API 키가 정상 확인되었습니다.', 'success');
+  } catch(err) {
+    toast('API 키 검증 실패: ' + err.message, 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = orig; }
+  }
 }
 
 function clearApiKey() {
