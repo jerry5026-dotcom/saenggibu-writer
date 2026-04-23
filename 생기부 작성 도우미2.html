@@ -1734,10 +1734,16 @@ function populateModels(p) {
 }
 
 async function validateApiKey(provider, key, model) {
-  // 형식 빠른 점검
-  if (provider === 'openai'  && !/^sk-/.test(key))     throw new Error('OpenAI 키 형식이 올바르지 않습니다 (sk-로 시작해야 함).');
-  if (provider === 'claude'  && !/^sk-ant-/.test(key)) throw new Error('Claude 키 형식이 올바르지 않습니다 (sk-ant-로 시작해야 함).');
-  if (provider === 'gemini'  && key.length < 20)       throw new Error('Gemini 키 형식이 올바르지 않습니다.');
+  // 형식 빠른 점검 (제공자별 안내)
+  if (provider === 'claude' && !/^sk-ant-/.test(key)) {
+    throw new Error('sk-ant- 로 시작하는 Anthropic 키가 필요합니다');
+  }
+  if (provider === 'openai' && (!/^sk-/.test(key) || /^sk-ant-/.test(key))) {
+    throw new Error('sk- 로 시작하는 OpenAI 키가 필요합니다 (Anthropic 키는 불가)');
+  }
+  if (provider === 'gemini' && (!/^AIzaSy/.test(key) || key.length !== 39)) {
+    throw new Error('AIzaSy 로 시작하는 39자 Google AI 키가 필요합니다');
+  }
 
   // 실제 API 핑 (8초 타임아웃)
   const controller = new AbortController();
