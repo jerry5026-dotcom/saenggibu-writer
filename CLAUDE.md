@@ -147,27 +147,31 @@ S.api = {
 
 ---
 
-## 8. 배포 흐름
+## 8. 배포 흐름 (메인 직접 작업)
+
+이 프로젝트는 **솔로 작업 + 단일 HTML + GitHub Pages 자동 배포** 환경이라 워크트리 없이 메인 브랜치에서 직접 작업한다. 단계가 적고 실수 위험이 낮음.
 
 ```
-워크트리(claude/modest-jang)에서 작업
+프로젝트 루트(main 브랜치)에서 helper1/2.html 직접 수정
     ↓ commit & push
-원격 워크트리 브랜치 갱신
-    ↓ main 체크아웃 → fast-forward merge → push
 GitHub Pages 자동 빌드/배포 (1~2분)
 ```
 
-명령 시퀀스:
+명령:
 ```bash
-# 워크트리에서
-git add -A && git commit -m "..." && git push
-
-# 메인 리포에서
-cd "../../.."  # 또는 절대경로로 메인 디렉토리
-git checkout main && git merge claude/modest-jang && git push
+cd "C:/Users/User/Desktop/클로드작업/생기부 작성 프로그램/"
+git add helper1.html helper2.html
+git commit -m "..."
+git push
 ```
 
+**작업 위치 절대 규칙**: 항상 프로젝트 루트(`생기부 작성 프로그램/`)에서 작업. `.claude/worktrees/` 하위는 사용하지 않는다 (혹시 남아 있어도 무시).
+
 GitHub 토큰은 사용자가 직접 관리. 자동 푸시 가능.
+
+### 워크트리가 필요해질 때 (현재는 불필요)
+- 큰 실험적 변경(예: 프롬프트 구조 전면 개편)을 며칠에 걸쳐 진행하면서 그동안 작은 패치는 main에 따로 배포해야 할 때
+- 다른 협업자가 합류해서 PR 리뷰 워크플로우가 필요할 때
 
 ---
 
