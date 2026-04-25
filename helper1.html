@@ -318,6 +318,9 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
 .manual-section ul{margin:0;padding-left:20px;color:#475569;font-size:13px;line-height:1.9}
 .manual-section li{margin-bottom:2px}
 .manual-badge{display:inline-block;background:#eff6ff;color:#3b82f6;font-size:11px;font-weight:600;padding:1px 7px;border-radius:20px;margin-left:4px}
+.manual-hero{background:linear-gradient(135deg,#eff6ff,#f0fdf4);border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#1e3a8a;line-height:1.75}
+.manual-hero strong:first-child{display:block;font-size:14px;margin-bottom:6px;color:#1e40af}
+.manual-why{font-size:12.5px;color:#0e7490;background:#ecfeff;border-left:3px solid #06b6d4;padding:6px 10px;margin:0 0 8px;border-radius:0 4px 4px 0;line-height:1.65}
 </style>
 </head>
 <body>
@@ -547,8 +550,14 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
     <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#92400e;line-height:1.6">
       ⚠️ AI 생성 문장은 초안입니다. 사실과 다른 내용이 포함될 수 있으므로 반드시 교사가 직접 확인·수정 후 기재하세요.
     </div>
+    <div class="manual-hero">
+      <strong>📌 왜 이 도구가 필요할까요?</strong>
+      학기말마다 한 반 30명, 영역마다 수백 줄 — 같은 표현이 반복되지 않게, NEIS 어휘·바이트 제한·금기 표현까지 신경 쓰며 쓰는 일은 정말 지치는 일입니다.<br>
+      이 도구는 선생님의 <strong>관찰 메모를 곧바로 NEIS 양식 초안 문장으로</strong> 바꿔 드립니다. 선생님은 가장 잘하시는 일 — <strong>학생을 직접 보고 다듬는 일</strong>에 집중하시면 됩니다.
+    </div>
     <div class="manual-section">
-      <h3>1. 기본 사용법</h3>
+      <h3>1. 시작하기 — 관찰 메모만 있으면 끝</h3>
+      <p class="manual-why">💡 떠오른 학생 모습을 줄글이든 단어든 그대로 적으세요. 형식은 도구가 맞춥니다.</p>
       <ul>
         <li>상단 [+] 버튼으로 영역 탭 추가 (자율활동 / 동아리 / 진로 / 행동특성)</li>
         <li>학생 이름 입력 후 활동 내용을 <strong>"학생 특성"</strong> 칸에 자유롭게 입력</li>
@@ -558,7 +567,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>2. 학생 수준 설정 (선택)</h3>
+      <h3>2. 학생 수준 설정 — 30명을 똑같이 쓰지 않도록</h3>
+      <p class="manual-why">💡 상·중·하 학생에게 같은 어휘를 쓰면 변별력도 진정성도 떨어집니다. 한 번 클릭이면 어휘·서술 방향이 자연스럽게 달라집니다.</p>
       <ul>
         <li>입력칸 하단의 <strong>상 / 중 / 하</strong> 버튼으로 학생 수준을 선택</li>
         <li>선택 시 AI가 수준에 맞는 어휘·표현·서술 방향으로 문장 생성</li>
@@ -569,7 +579,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>3. AI 생성 문장 다듬기</h3>
+      <h3>3. 다듬기 — 한 번에 끝내지 않아도 됩니다</h3>
+      <p class="manual-why">💡 첫 문장이 마음에 안 들면 "더 구체적으로" 한 마디만 적으세요. 이전 버전은 자동 보관되어 언제든 되돌릴 수 있어요.</p>
       <ul>
         <li><strong>📋 복사</strong>: 생성된 문장을 클립보드에 복사</li>
         <li><strong>✏️ 수정</strong>: 클릭 후 수정 지시사항 입력 → AI가 기존 문장의 좋은 부분은 유지하며 보완</li>
@@ -578,7 +589,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>4. 명단 업로드</h3>
+      <h3>4. 명단 업로드 — 30명 이름 다시 입력 안 해도</h3>
+      <p class="manual-why">💡 학기 초 한 번만 업로드하면 끝. 명단이 바뀌어도 기존 입력은 이름 매칭으로 보존됩니다.</p>
       <ul>
         <li>엑셀 파일 준비: A열=번호, B열=이름, 1행=헤더</li>
         <li>[👥 명단 업로드] 클릭하여 파일 선택</li>
@@ -586,7 +598,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>5. 엑셀에서 학생 특성 일괄 붙여넣기</h3>
+      <h3>5. 일괄 붙여넣기 — 30명 분량을 한 번에</h3>
+      <p class="manual-why">💡 평소 엑셀에 메모하신다면 그대로 복사·붙여넣기. 한 명씩 옮길 필요 없습니다.</p>
       <ul>
         <li>엑셀에서 학생 특성 내용이 입력된 셀들을 복사 (Ctrl+C)</li>
         <li>첫 번째 학생의 <strong>"학생 특성"</strong> 칸을 클릭 후 붙여넣기 (Ctrl+V)</li>
@@ -594,7 +607,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>6. AI API 설정 (다중 제공자 + 빠른 전환)</h3>
+      <h3>6. AI 도구 연결 — 선생님이 쓰시는 그것 그대로</h3>
+      <p class="manual-why">💡 Claude · OpenAI · Gemini 중 이미 쓰시는 게 있다면 그걸로. 셋 다 등록해 두면 비용·속도·품질을 비교하며 골라 쓸 수 있습니다.</p>
       <ul>
         <li>[⚙️ API 설정] 클릭 → 제공자(Claude / OpenAI / Gemini) 카드를 선택해 키 입력 후 [저장]</li>
         <li>저장 시 자동 검증: 형식 점검 + 실제 API 핑 (8초 이내) → 잘못된 키는 거부</li>
@@ -604,7 +618,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>7. 엑셀 저장/불러오기</h3>
+      <h3>7. 엑셀 저장/불러오기 — 컴퓨터가 바뀌어도, 학년이 바뀌어도</h3>
+      <p class="manual-why">💡 입력은 브라우저에 자동 저장되지만, PC가 바뀌면 사라집니다. 엑셀로 받아 두시면 어디서든 이어 작업하실 수 있습니다.</p>
       <ul>
         <li>[엑셀 다운로드]: 영역별 시트로 전체 저장</li>
         <li>컬럼 순서: <strong>번호 / 이름 / 수준 / 학생 특성 / 생성된 문장</strong></li>
@@ -612,7 +627,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>8. 비밀번호 설정 🔒</h3>
+      <h3>8. 비밀번호 설정 🔒 — 학생 정보 보호</h3>
+      <p class="manual-why">💡 공용 컴퓨터·교무실 PC에서도 안심하고 쓰실 수 있게. 학생 이름·관찰 기록은 민감 정보입니다.</p>
       <ul>
         <li>[⚙️ API 설정] 하단의 "🔒 비밀번호 설정/변경" 클릭</li>
         <li>숫자 4~6자리로 설정</li>
@@ -621,7 +637,8 @@ thead th:first-child,thead th:nth-child(2){text-align:center}
       </ul>
     </div>
     <div class="manual-section">
-      <h3>9. 데이터 저장</h3>
+      <h3>9. 자동 저장 — 그래도 백업은 필수</h3>
+      <p class="manual-why">💡 작성 중 앱이 닫혀도 입력은 살아 있습니다. 학기 끝엔 꼭 엑셀로 한 번 받아 두세요.</p>
       <ul>
         <li>입력 내용은 브라우저에 자동 저장됨 (같은 브라우저에서만 유지)</li>
         <li>중요 데이터는 [엑셀 다운로드]로 백업 권장</li>
@@ -2294,7 +2311,7 @@ init();
 </style>
 <footer class="site-footer">
   선생님의 소중한 퇴근 시간을 응원합니다 &nbsp;|&nbsp; <a href="mailto:jerry5026@gmail.com" class="footer-email">jerry5026@gmail.com</a>
-  <div class="footer-sub">마지막 업데이트 <span id="lastUpdate"></span> · v1.0 · 계속 다듬어 나가는 중입니다</div>
+  <div class="footer-sub">마지막 업데이트 <span id="lastUpdate"></span> · v1.0.1 · 계속 다듬어 나가는 중입니다</div>
 </footer>
 <script>
 (function(){
